@@ -65,7 +65,36 @@ Chaque commande doit afficher `status: 1`. Gardez ce mot de passe pour l'étape 
 
 Ou WHM > cPanel de `gmsweb` > **SSL/TLS Status** > **Run AutoSSL**.
 
-## 6. Préparer et envoyer l'application
+## 6 bis. Déploiement automatique par GitHub (recommandé)
+
+Chaque `git push` sur `main` lance `.github/workflows/deploiement.yml` : compilation des assets, envoi de l'archive dans `/home/gmsweb`, puis `installer.sh`. L'étape 6 manuelle devient inutile.
+
+1. Sur le serveur (root) — shell et clé SSH dédiée à GitHub :
+
+```bash
+whmapi1 modifyacct user=gmsweb HASSHELL=1 2>/dev/null | grep -E "result:|reason:"
+su - gmsweb -s /bin/bash -c 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && ssh-keygen -t ed25519 -N "" -C github-actions-perlecasa -f ~/.ssh/github_actions && cat ~/.ssh/github_actions.pub >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys'
+cat /home/gmsweb/.ssh/github_actions
+ssh-keyscan 51.210.44.174 2>/dev/null
+```
+
+2. GitHub > dépôt **privé** > Settings > Secrets and variables > Actions > New repository secret :
+
+| Secret | Valeur |
+|---|---|
+| `SSH_HOST` | `51.210.44.174` |
+| `SSH_USER` | `gmsweb` |
+| `SSH_PORT` | seulement si SSH n'écoute pas sur 22 |
+| `SSH_PRIVATE_KEY` | sortie de `cat …/github_actions` (de `-----BEGIN` à `END …-----` inclus) |
+| `SSH_KNOWN_HOSTS` | sortie de `ssh-keyscan` |
+
+Puis supprimez la clé privée du serveur : `rm /home/gmsweb/.ssh/github_actions`.
+
+3. Sur le PC : `git push -u origin main`. Suivi dans l'onglet **Actions** du dépôt ; relance manuelle par **Run workflow**.
+
+Au premier passage, `installer.sh` crée `.env` et s'arrête : complétez-le (étape 7), puis relancez le workflow.
+
+## 6. Préparer et envoyer l'application (méthode manuelle)
 
 Sur votre PC, dossier `application` :
 
