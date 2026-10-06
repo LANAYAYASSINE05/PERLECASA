@@ -10,7 +10,7 @@ principal() {
 
     local APP="$HOME/perlecasa"
     local PHP="${PHP_BIN:-/opt/cpanel/ea-php83/root/usr/bin/php}"
-    local COMPOSER="${COMPOSER_BIN:-/opt/cpanel/composer/bin/composer}"
+    local COMPOSER="${COMPOSER_BIN:-$HOME/bin/composer}"
     cd "$APP"
 
     command -v npm >/dev/null || { echo "npm introuvable pour gmsweb : installez Node.js (dnf module install nodejs:22)."; exit 1; }

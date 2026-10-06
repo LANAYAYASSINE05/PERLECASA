@@ -14,7 +14,7 @@ for candidat in /opt/cpanel/ea-php84/root/usr/bin/php /opt/cpanel/ea-php83/root/
     if [ -n "$candidat" ] && [ -x "$candidat" ]; then PHP="$candidat"; break; fi
 done
 [ -n "$PHP" ] || { echo "PHP introuvable : installez PHP 8.2+ dans WHM > EasyApache 4."; exit 1; }
-COMPOSER="${COMPOSER_BIN:-/opt/cpanel/composer/bin/composer}"
+COMPOSER="${COMPOSER_BIN:-$HOME/bin/composer}"
 
 "$PHP" -r 'exit(version_compare(PHP_VERSION, "8.2.0", ">=") ? 0 : 1);' \
     || { echo "PHP 8.2 ou plus est requis ($PHP est en $("$PHP" -r 'echo PHP_VERSION;'))."; exit 1; }
