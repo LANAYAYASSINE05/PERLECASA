@@ -1,0 +1,76 @@
+name: Déploiement production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deployer:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: bcmath, intl, gd, zip, mbstring, pdo_mysql
+          tools: composer:v2
+          coverage: none
+
+      # Le thème Filament importe vendor/filament : vendor est nécessaire pour compiler, pas pour l'archive.
+      - name: Dépendances PHP (compilation du thème)
+        run: composer install --no-dev --no-scripts --no-interaction --prefer-dist --no-progress
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Compilation des assets
+        run: |
+          npm ci
+          npm run build
+          rm -f public/hot
+
+      - name: Archive
+        run: |
+          tar -czf "$RUNNER_TEMP/perlecasa.tar.gz" \
+            --exclude=./.git --exclude=./.github --exclude=./node_modules --exclude=./vendor --exclude=./tests \
+            --exclude=./.env --exclude=./.env.backup --exclude=./public/hot --exclude=./public/storage \
+            .
+          ls -lh "$RUNNER_TEMP/perlecasa.tar.gz"
+
+      - name: Clé SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploiement
+          chmod 600 ~/.ssh/deploiement
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Envoi et installation sur le VPS
+        env:
+          HOTE: ${{ secrets.SSH_HOST }}
+          PORT: ${{ secrets.SSH_PORT || '22' }}
+          UTILISATEUR: ${{ secrets.SSH_USER }}
+        run: |
+          SSH_OPTS="-i $HOME/.ssh/deploiement -o StrictHostKeyChecking=yes -o BatchMode=yes"
+          scp $SSH_OPTS -P "$PORT" "$RUNNER_TEMP/perlecasa.tar.gz" deploiement/installer.sh "$UTILISATEUR@$HOTE:~/"
+          ssh $SSH_OPTS -p "$PORT" "$UTILISATEUR@$HOTE" 'bash ~/installer.sh'
+
+      - name: Nettoyage
+        if: always()
+        run: rm -f ~/.ssh/deploiement

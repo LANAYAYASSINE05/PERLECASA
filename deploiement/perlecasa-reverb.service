@@ -1,0 +1,17 @@
+# Serveur WebSocket des notifications instantanées.
+# Compte cPanel gmsweb, PHP 8.3 ; installation :
+#   cp perlecasa-reverb.service /etc/systemd/system/ && systemctl daemon-reload && systemctl enable --now perlecasa-reverb
+[Unit]
+Description=Perle Casa Immobilier - Reverb (WebSocket)
+After=network.target mysqld.service
+
+[Service]
+User=gmsweb
+Group=gmsweb
+WorkingDirectory=/home/gmsweb/perlecasa
+ExecStart=/opt/cpanel/ea-php83/root/usr/bin/php artisan reverb:start --host=127.0.0.1 --port=8080
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

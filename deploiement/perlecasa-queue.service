@@ -1,0 +1,17 @@
+# Traitement de la file d'attente (tâches en arrière-plan).
+# Compte cPanel gmsweb, PHP 8.3 ; installation :
+#   cp perlecasa-queue.service /etc/systemd/system/ && systemctl daemon-reload && systemctl enable --now perlecasa-queue
+[Unit]
+Description=Perle Casa Immobilier - file d'attente
+After=network.target mysqld.service
+
+[Service]
+User=gmsweb
+Group=gmsweb
+WorkingDirectory=/home/gmsweb/perlecasa
+ExecStart=/opt/cpanel/ea-php83/root/usr/bin/php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

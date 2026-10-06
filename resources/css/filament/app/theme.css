@@ -1,0 +1,2127 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@config 'tailwind.config.js';
+
+/*
+ * Charte Perle Casa Immobilier, style plan d'architecte : papier millimétré, encre marine, repères or.
+ * Les règles « .dark … » doublent la spécificité des variantes dark: de Filament ;
+ * elles doivent rester après l'import pour l'emporter.
+ */
+
+:root {
+    --pc-marine-950: #06152a;
+    --pc-marine-900: #0a1f3b;
+    --pc-marine-800: #0c2a4d;
+    --pc-plan: #1f4f86;
+    --pc-or: #c4953a;
+    --pc-or-clair: #e2c27a;
+    --pc-papier: #f5f8fb;
+    --pc-bord: #d3dce8;
+    --pc-bord-fort: #9fb1c7;
+    --pc-ligne: rgba(31, 79, 134, 0.05);
+    --pc-ligne-forte: rgba(31, 79, 134, 0.09);
+    --pc-fond-nuit: #06101f;
+    --pc-carte-nuit: #0b1a31;
+    --pc-rayon: 3px;
+}
+
+/* ---------- Papier millimétré ---------- */
+
+.fi-body {
+    background-color: var(--pc-papier);
+    background-image:
+        linear-gradient(var(--pc-ligne-forte) 1px, transparent 1px),
+        linear-gradient(90deg, var(--pc-ligne-forte) 1px, transparent 1px),
+        linear-gradient(var(--pc-ligne) 1px, transparent 1px),
+        linear-gradient(90deg, var(--pc-ligne) 1px, transparent 1px);
+    background-size: 60px 60px, 60px 60px, 12px 12px, 12px 12px;
+    background-attachment: fixed;
+}
+
+.dark .fi-body {
+    --pc-ligne: rgba(148, 180, 220, 0.035);
+    --pc-ligne-forte: rgba(148, 180, 220, 0.06);
+    background-color: var(--pc-fond-nuit);
+}
+
+/* ---------- Barre latérale : tirage bleu ---------- */
+
+.fi-sidebar,
+.dark .fi-sidebar {
+    background-color: var(--pc-marine-900);
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 24px 24px;
+    border-inline-end: 1.5px solid var(--pc-marine-950);
+}
+
+.fi-sidebar .fi-sidebar-header,
+.dark .fi-sidebar .fi-sidebar-header {
+    background: transparent;
+    box-shadow: none;
+    border-bottom: 1px dashed rgba(226, 194, 122, 0.3);
+}
+
+.fi-sidebar .fi-sidebar-header .fi-icon-btn {
+    border-radius: 2px;
+    color: rgba(226, 232, 240, 0.6);
+}
+
+.fi-sidebar .fi-sidebar-header .fi-icon-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.fi-sidebar .fi-sidebar-nav {
+    padding-top: 1.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(226, 194, 122, 0.18) transparent;
+    counter-reset: pc-groupe;
+}
+
+.fi-sidebar .fi-sidebar-nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.fi-sidebar .fi-sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(226, 194, 122, 0.18);
+}
+
+/* Groupes numérotés comme les lots d'un plan : 01, 02… */
+.fi-sidebar .fi-sidebar-group:has(.fi-sidebar-group-label) {
+    counter-increment: pc-groupe;
+}
+
+.fi-sidebar .fi-sidebar-group-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(226, 232, 240, 0.55);
+}
+
+.fi-sidebar .fi-sidebar-group-label::before {
+    content: counter(pc-groupe, decimal-leading-zero);
+    padding: 1px 4px;
+    border: 1px solid rgba(226, 194, 122, 0.45);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+    color: var(--pc-or-clair);
+}
+
+.fi-sidebar .fi-sidebar-group-collapse-button {
+    color: rgba(226, 194, 122, 0.5);
+}
+
+.fi-sidebar .fi-sidebar-item-button {
+    position: relative;
+    border-radius: 2px;
+}
+
+.fi-sidebar .fi-sidebar-item-label {
+    color: rgba(226, 232, 240, 0.78);
+}
+
+.fi-sidebar .fi-sidebar-item-icon {
+    color: rgba(148, 170, 200, 0.7);
+}
+
+.fi-sidebar .fi-sidebar-item-button:hover,
+.fi-sidebar .fi-sidebar-item-button:focus-visible {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.fi-sidebar .fi-sidebar-item-button:hover .fi-sidebar-item-label {
+    color: #fff;
+}
+
+.fi-sidebar .fi-sidebar-item-button:hover .fi-sidebar-item-icon {
+    color: var(--pc-or-clair);
+}
+
+/* Élément actif : cadre en pointillés or, comme une pièce sélectionnée sur le plan */
+.fi-sidebar .fi-active > .fi-sidebar-item-button {
+    background: rgba(196, 149, 58, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(226, 194, 122, 0.35);
+}
+
+.fi-sidebar .fi-active > .fi-sidebar-item-button::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: -1px;
+    width: 3px;
+    background: var(--pc-or);
+}
+
+.fi-sidebar .fi-active > .fi-sidebar-item-button .fi-sidebar-item-label {
+    color: #fff;
+    font-weight: 600;
+}
+
+.fi-sidebar .fi-active > .fi-sidebar-item-button .fi-sidebar-item-icon {
+    color: var(--pc-or-clair);
+}
+
+/* Pied de barre : cartouche du plan */
+.pc-sidebar-pied {
+    margin: 0 1rem 1rem;
+    border: 1px solid rgba(226, 194, 122, 0.3);
+    background: rgba(6, 21, 42, 0.55);
+    color: rgba(226, 232, 240, 0.72);
+    font-size: 0.75rem;
+    line-height: 1.35;
+}
+
+.pc-sidebar-pied-nom {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 0.8rem;
+    border-bottom: 1px solid rgba(226, 194, 122, 0.2);
+}
+
+.pc-sidebar-pied-nom strong {
+    display: block;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.pc-sidebar-pied-initiales {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    background: var(--pc-or);
+    color: var(--pc-marine-950);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.pc-sidebar-pied dl {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.pc-sidebar-pied dl > div {
+    padding: 0.5rem 0.8rem;
+}
+
+.pc-sidebar-pied dl > div + div {
+    border-left: 1px solid rgba(226, 194, 122, 0.2);
+}
+
+.pc-sidebar-pied dt {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(226, 194, 122, 0.75);
+}
+
+.pc-sidebar-pied dd {
+    margin-top: 1px;
+    color: #fff;
+}
+
+/* ---------- Barre supérieure ---------- */
+
+.fi-topbar > nav,
+.dark .fi-topbar > nav {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: saturate(160%) blur(10px);
+    box-shadow: none;
+    border-bottom: 1px solid var(--pc-bord);
+}
+
+.dark .fi-topbar > nav {
+    background: rgba(6, 16, 31, 0.88);
+    border-bottom-color: rgba(255, 255, 255, 0.07);
+}
+
+.pc-topbar-date {
+    align-items: stretch;
+    border: 1px solid var(--pc-bord);
+    font-size: 0.78rem;
+    line-height: 1.2;
+    background: #fff;
+}
+
+.pc-topbar-date > span {
+    padding: 0.35rem 0.75rem;
+}
+
+.pc-topbar-date > span + span {
+    border-left: 1px solid var(--pc-bord);
+}
+
+.pc-topbar-date small {
+    display: block;
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--gray-400));
+}
+
+.pc-topbar-date strong {
+    font-weight: 600;
+    color: var(--pc-marine-800);
+}
+
+.dark .pc-topbar-date {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .pc-topbar-date > span + span {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .pc-topbar-date strong {
+    color: #fff;
+}
+
+.fi-global-search-field .fi-input-wrp {
+    background-color: #fff;
+}
+
+/* ---------- En-têtes de page ---------- */
+
+.fi-header-heading {
+    position: relative;
+    padding-bottom: 0.7rem;
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--pc-marine-800);
+}
+
+/* Trait de cote or sous le titre, avec ses deux repères */
+.fi-header-heading::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 56px;
+    height: 7px;
+    background:
+        linear-gradient(var(--pc-or), var(--pc-or)) left center / 100% 1.5px no-repeat,
+        linear-gradient(var(--pc-or), var(--pc-or)) left center / 1.5px 100% no-repeat,
+        linear-gradient(var(--pc-or), var(--pc-or)) right center / 1.5px 100% no-repeat;
+}
+
+.dark .fi-header-heading {
+    color: #fff;
+}
+
+.fi-header-subheading {
+    font-size: 0.95rem;
+}
+
+.fi-breadcrumbs li a,
+.fi-breadcrumbs li span {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+/* ---------- Cartes, sections, tableaux ---------- */
+
+.fi-section:not(.fi-aside),
+.fi-ta-ctn,
+.fi-wi-stats-overview-stat,
+.fi-fo-tabs,
+.fi-in-tabs,
+.fi-fo-repeater-item,
+.fi-in-entry-wrp .fi-section {
+    border-radius: var(--pc-rayon);
+    box-shadow: 0 0 0 1px var(--pc-bord), 4px 4px 0 rgba(12, 42, 77, 0.05);
+}
+
+.dark .fi-section:not(.fi-aside),
+.dark .fi-ta-ctn,
+.dark .fi-wi-stats-overview-stat,
+.dark .fi-fo-tabs,
+.dark .fi-in-tabs,
+.dark .fi-fo-repeater-item {
+    background-color: var(--pc-carte-nuit);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* En-tête de section : bande de cartouche */
+.fi-section:not(.fi-aside) > .fi-section-header {
+    background-color: #f8fafc;
+    background-image:
+        linear-gradient(var(--pc-ligne) 1px, transparent 1px),
+        linear-gradient(90deg, var(--pc-ligne) 1px, transparent 1px);
+    background-size: 12px 12px;
+    border-bottom: 1px solid var(--pc-bord);
+    border-radius: var(--pc-rayon) var(--pc-rayon) 0 0;
+}
+
+.dark .fi-section:not(.fi-aside) > .fi-section-header {
+    background-color: rgba(255, 255, 255, 0.02);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.fi-section:not(.fi-aside) > .fi-section-content-ctn {
+    border-top: 0;
+}
+
+.fi-section-header-heading {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--pc-marine-800);
+}
+
+.dark .fi-section-header-heading {
+    color: #fff;
+}
+
+.fi-section-header-description {
+    font-size: 0.82rem;
+}
+
+.fi-section-header-icon,
+.dark .fi-section-header-icon {
+    color: var(--pc-or);
+}
+
+
+/*
+ * Tableaux, style moderne épuré : carte arrondie à ombre douce, en-tête discret,
+ * séparateurs fins, pastilles de statut, avatars à initiales, jauge arrondie.
+ */
+.fi-ta-ctn {
+    overflow: hidden;
+    border-radius: 14px !important;
+    background-color: #fff;
+    box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 0.06),
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 12px 32px -12px rgba(12, 42, 77, 0.14) !important;
+}
+
+.fi-ta-header,
+.fi-ta-header-toolbar {
+    background-color: #fff;
+    border-bottom: 1px solid #eef2f6;
+}
+
+.fi-ta-header-heading {
+    font-weight: 600;
+    color: var(--pc-marine-800);
+}
+
+.fi-ta-search-field .fi-input-wrp {
+    border-radius: 999px !important;
+    background-color: #f8fafc;
+    box-shadow: 0 0 0 1px #e2e8f0 !important;
+}
+
+.fi-ta-search-field .fi-input-wrp:focus-within {
+    background-color: #fff;
+    box-shadow: 0 0 0 1px var(--pc-or), 0 0 0 4px rgba(196, 149, 58, 0.15) !important;
+}
+
+.fi-ta-table > thead > tr {
+    background-color: #f8fafc;
+    box-shadow: inset 0 -1px 0 #e2e8f0;
+}
+
+.fi-ta-table > thead > tr > th {
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+}
+
+.fi-ta-header-cell-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.fi-ta-header-cell-sort-icon,
+.fi-ta-header-cell button:hover .fi-ta-header-cell-label {
+    color: var(--pc-or) !important;
+}
+
+.fi-ta-table > tbody,
+.fi-ta-table > tbody > tr {
+    border-color: #eef2f6 !important;
+}
+
+.fi-ta-table > tbody > .fi-ta-row {
+    transition: background-color 0.15s ease;
+}
+
+.fi-ta-table > tbody > .fi-ta-row:not(.fi-ta-summary-row):hover {
+    background-color: #f8fafc;
+}
+
+.fi-ta-table > tbody > .fi-ta-row > td {
+    padding-top: 0.15rem;
+    padding-bottom: 0.15rem;
+}
+
+/* Premier repère de la ligne : référence en gras marine. */
+.fi-ta-row > .fi-ta-cell:first-child:not(.fi-ta-selection-cell) .fi-ta-text-item-label,
+.fi-ta-row > .fi-ta-selection-cell + .fi-ta-cell .fi-ta-text-item-label {
+    font-weight: 600;
+    color: var(--pc-marine-800);
+}
+
+.fi-ta-text-item-label {
+    font-variant-numeric: tabular-nums;
+}
+
+.fi-ta-text-item .text-gray-500,
+.fi-ta-text .text-gray-500 {
+    color: #94a3b8;
+}
+
+/* Pastilles de statut : badges arrondis avec point de couleur. */
+.fi-ta-cell .fi-badge {
+    gap: 0.4rem;
+    padding: 0.2rem 0.65rem 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    box-shadow: none !important;
+}
+
+.fi-ta-cell .fi-badge::before {
+    content: '';
+    width: 0.4rem;
+    height: 0.4rem;
+    flex: none;
+    border-radius: 999px;
+    background-color: currentColor;
+}
+
+.fi-ta-cell .fi-badge .fi-badge-icon {
+    display: none;
+}
+
+/* Avatars à initiales (App\Filament\Support\Avatar). */
+.pc-avatar-ctn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.pc-avatar {
+    display: inline-grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: hsl(var(--pc-teinte) 45% 28%);
+    background-color: hsl(var(--pc-teinte) 60% 93%);
+    box-shadow: inset 0 0 0 1px hsl(var(--pc-teinte) 40% 82%);
+}
+
+.pc-avatar-nom {
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.pc-avatar-detail {
+    display: block;
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+/* Jauge d'encaissement arrondie (App\Filament\Support\Jauge). */
+.pc-jauge-ctn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    width: 100%;
+    margin-top: 0.35rem;
+}
+
+.pc-jauge {
+    position: relative;
+    display: block;
+    width: 5.5rem;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #eef2f6;
+}
+
+.pc-jauge > span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--pc-taux);
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--pc-or), var(--pc-or-clair));
+    animation: pc-jauge-remplir 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.pc-jauge-pleine .pc-jauge > span {
+    background: linear-gradient(90deg, #059669, #34d399);
+}
+
+.pc-jauge-texte {
+    min-width: 2.4rem;
+    text-align: right;
+    font-size: 0.7rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: #94a3b8;
+}
+
+.pc-jauge-pleine .pc-jauge-texte {
+    color: #059669;
+}
+
+@keyframes pc-jauge-remplir {
+    from {
+        width: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pc-jauge > span {
+        animation: none;
+    }
+}
+
+/* Point d'état devant la référence (classes posées par recordClasses()). */
+.fi-ta-table > tbody > .pc-fiche-ok,
+.fi-ta-table > tbody > .pc-fiche-attente,
+.fi-ta-table > tbody > .pc-fiche-alerte {
+    --pc-point: transparent;
+}
+
+.fi-ta-table > tbody > .pc-fiche-ok {
+    --pc-point: #10b981;
+}
+
+.fi-ta-table > tbody > .pc-fiche-attente {
+    --pc-point: #f59e0b;
+}
+
+.fi-ta-table > tbody > .pc-fiche-alerte {
+    --pc-point: #f43f5e;
+    background-color: #fff8f9;
+}
+
+.fi-ta-table > tbody > :is(.pc-fiche-ok, .pc-fiche-attente, .pc-fiche-alerte) > td:first-child:not(.fi-ta-selection-cell) .fi-ta-text-item-label::before,
+.fi-ta-table > tbody > :is(.pc-fiche-ok, .pc-fiche-attente, .pc-fiche-alerte) > .fi-ta-selection-cell + td .fi-ta-text-item-label::before {
+    content: '';
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-right: 0.55rem;
+    vertical-align: 0.08em;
+    border-radius: 999px;
+    background-color: var(--pc-point);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pc-point) 18%, transparent);
+}
+
+/* Actions : boutons fantômes arrondis. */
+.fi-ta-actions {
+    gap: 0.25rem !important;
+}
+
+.fi-ta-actions .fi-ac-link-action,
+.fi-ta-actions .fi-ac-link-group {
+    padding: 0.35rem 0.6rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none !important;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fi-ta-actions .fi-ac-link-action:hover,
+.fi-ta-actions .fi-ac-link-group:hover {
+    background-color: #f1f5f9;
+    box-shadow: 0 0 0 1px #e2e8f0;
+}
+
+.fi-ta-actions .fi-ac-link-action .fi-link-icon {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Ligne de résumé. */
+.fi-ta-summary-header-row,
+.fi-ta-summary-row {
+    background-color: #f8fafc !important;
+}
+
+.fi-ta-summary-row-heading,
+.fi-ta-summary-header-cell {
+    font-size: 0.68rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b !important;
+}
+
+.fi-ta-text-summary {
+    font-variant-numeric: tabular-nums;
+}
+
+.fi-ta-text-summary > span:not(:last-child) {
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #94a3b8;
+}
+
+.fi-ta-text-summary > span:last-child,
+.fi-ta-text-summary li {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--pc-marine-800);
+}
+
+.fi-ta-group-header {
+    background-color: #f8fafc !important;
+}
+
+.fi-ta-filter-indicators {
+    background-color: #fffbeb;
+}
+
+.fi-ta-empty-state-heading {
+    color: var(--pc-marine-800);
+}
+
+.fi-ta-empty-state-icon-ctn {
+    border-radius: 999px;
+    background: #f1f5f9;
+}
+
+/* Mode sombre. */
+.dark .fi-ta-ctn {
+    background-color: var(--pc-carte-nuit);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 12px 32px -12px rgba(0, 0, 0, 0.6) !important;
+}
+
+.dark .fi-ta-header,
+.dark .fi-ta-header-toolbar {
+    background-color: transparent;
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.dark .fi-ta-search-field .fi-input-wrp {
+    background-color: rgba(255, 255, 255, 0.04);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .fi-ta-table > thead > tr,
+.dark .fi-ta-summary-header-row,
+.dark .fi-ta-summary-row,
+.dark .fi-ta-group-header {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.dark .fi-ta-header-cell-label,
+.dark .fi-ta-summary-row-heading,
+.dark .fi-ta-summary-header-cell {
+    color: #94a3b8 !important;
+}
+
+.dark .fi-ta-table > tbody,
+.dark .fi-ta-table > tbody > tr {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.dark .fi-ta-table > tbody > .fi-ta-row:not(.fi-ta-summary-row):hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.dark .fi-ta-table > tbody > .pc-fiche-alerte {
+    background-color: rgba(244, 63, 94, 0.06);
+}
+
+.dark .fi-ta-row > .fi-ta-cell:first-child:not(.fi-ta-selection-cell) .fi-ta-text-item-label,
+.dark .fi-ta-row > .fi-ta-selection-cell + .fi-ta-cell .fi-ta-text-item-label,
+.dark .fi-ta-text-summary > span:last-child,
+.dark .fi-ta-text-summary li,
+.dark .fi-ta-header-heading,
+.dark .pc-avatar-nom {
+    color: #fff !important;
+}
+
+.dark .pc-avatar {
+    color: hsl(var(--pc-teinte) 70% 85%);
+    background-color: hsl(var(--pc-teinte) 35% 22%);
+    box-shadow: inset 0 0 0 1px hsl(var(--pc-teinte) 30% 32%);
+}
+
+.dark .pc-jauge {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.dark .fi-ta-actions .fi-ac-link-action:hover,
+.dark .fi-ta-actions .fi-ac-link-group:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* ---------- Pagination : pastilles arrondies ---------- */
+
+.fi-ta-ctn > .fi-ta-pagination,
+.fi-ta-ctn .fi-pagination {
+    border-top: 1px solid #eef2f6;
+}
+
+.fi-pagination {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+.fi-pagination-overview {
+    font-size: 0.75rem !important;
+    color: #64748b !important;
+    font-variant-numeric: tabular-nums;
+}
+
+.fi-pagination-items {
+    gap: 0.2rem;
+    padding: 0.2rem;
+    border-radius: 999px !important;
+    background: #f1f5f9 !important;
+    box-shadow: none !important;
+}
+
+.fi-pagination-item {
+    border: 0 !important;
+}
+
+.fi-pagination-item-button {
+    min-width: 2rem;
+    justify-content: center;
+    border-radius: 999px !important;
+}
+
+.fi-pagination-item-label {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: #475569 !important;
+}
+
+.fi-pagination-item:not(.fi-disabled):not(.fi-active) .fi-pagination-item-button:hover {
+    background-color: #fff !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.fi-pagination-item.fi-active .fi-pagination-item-button {
+    background-color: var(--pc-marine-800) !important;
+    box-shadow: 0 2px 6px -1px rgba(12, 42, 77, 0.4);
+}
+
+.fi-pagination-item.fi-active .fi-pagination-item-label {
+    color: #fff !important;
+}
+
+.fi-pagination-item-icon {
+    color: #475569 !important;
+}
+
+.fi-pagination-item:not(.fi-disabled) .fi-pagination-item-button:hover .fi-pagination-item-icon {
+    color: var(--pc-or) !important;
+}
+
+.fi-pagination .fi-input-wrp {
+    border-radius: 999px !important;
+    box-shadow: 0 0 0 1px #e2e8f0 !important;
+}
+
+.fi-pagination .fi-input-wrp-prefix {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.fi-pagination .fi-select-input {
+    font-weight: 600;
+    color: var(--pc-marine-800);
+    font-variant-numeric: tabular-nums;
+}
+
+.fi-pagination .fi-btn {
+    border-radius: 999px !important;
+}
+
+/*
+ * Widgets en demi-largeur : Filament y remplace compteur et pastilles par « Précédent / Suivant ».
+ * On garde compteur au-dessus, puis lignes par page à gauche et pastilles à droite.
+ */
+.fi-wi-table .fi-ta-ctn {
+    container: pc-widget / inline-size;
+}
+
+@container pc-widget (min-width: 18rem) {
+    .fi-wi-table .fi-pagination:not(.fi-simple) {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.6rem 0.75rem;
+    }
+
+    .fi-wi-table .fi-pagination:not(.fi-simple) > .fi-pagination-previous-btn,
+    .fi-wi-table .fi-pagination:not(.fi-simple) > .fi-pagination-next-btn {
+        display: none;
+    }
+
+    .fi-wi-table .fi-pagination-overview {
+        display: block;
+        flex-basis: 100%;
+    }
+
+    .fi-wi-table .fi-pagination-items {
+        display: flex;
+        margin-inline-start: auto;
+    }
+
+    .fi-wi-table .fi-pagination-item-button {
+        min-width: 1.85rem;
+        padding: 0.35rem;
+    }
+}
+
+.dark .fi-ta-ctn > .fi-ta-pagination,
+.dark .fi-ta-ctn .fi-pagination {
+    border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+.dark .fi-pagination-items {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark .fi-pagination-overview,
+.dark .fi-pagination-item-label,
+.dark .fi-pagination-item-icon {
+    color: rgb(var(--gray-300)) !important;
+}
+
+.dark .fi-pagination-item.fi-active .fi-pagination-item-button {
+    background-color: var(--pc-or) !important;
+}
+
+.dark .fi-pagination-item.fi-active .fi-pagination-item-label {
+    color: var(--pc-marine-950) !important;
+}
+
+/* Arrondis des tableaux, prioritaires sur les angles droits des champs et badges globaux. */
+.fi-layout .fi-ta-ctn .fi-input-wrp,
+.fi-layout .fi-ta-ctn .fi-select-input,
+.fi-layout .fi-ta-ctn .fi-badge {
+    border-radius: 999px !important;
+}
+
+html:not(.dark) .fi-layout .fi-ta-ctn .fi-input-wrp {
+    background-color: #f8fafc;
+    box-shadow: 0 0 0 1px #e2e8f0;
+}
+
+html:not(.dark) .fi-layout .fi-ta-ctn .fi-input-wrp:focus-within {
+    background-color: #fff;
+    box-shadow: 0 0 0 1px var(--pc-or), 0 0 0 4px rgba(196, 149, 58, 0.15);
+}
+
+/* ---------- Listes déroulantes natives (par page, filtres) ---------- */
+
+.fi-select-input option {
+    background-color: #fff;
+    color: var(--pc-marine-800);
+}
+
+@supports (appearance: base-select) {
+    .fi-select-input:not([multiple]),
+    .fi-select-input:not([multiple])::picker(select) {
+        appearance: base-select;
+    }
+
+    .fi-select-input:not([multiple])::picker-icon {
+        display: none;
+    }
+
+    .fi-select-input::picker(select) {
+        min-width: anchor-size(width);
+        margin-block: 0.4rem;
+        padding: 0.3rem;
+        border: 0;
+        border-radius: 12px;
+        background-color: #fff;
+        box-shadow:
+            0 0 0 1px rgba(15, 23, 42, 0.08),
+            0 16px 36px -10px rgba(12, 42, 77, 0.28);
+        opacity: 0;
+        transform: translateY(-4px) scale(0.98);
+        transition:
+            opacity 0.15s ease,
+            transform 0.15s ease,
+            overlay 0.15s allow-discrete,
+            display 0.15s allow-discrete;
+    }
+
+    .fi-select-input:open::picker(select) {
+        opacity: 1;
+        transform: none;
+    }
+
+    @starting-style {
+        .fi-select-input:open::picker(select) {
+            opacity: 0;
+            transform: translateY(-4px) scale(0.98);
+        }
+    }
+
+    .fi-select-input option {
+        gap: 0.5rem;
+        padding: 0.45rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+        color: #334155;
+        cursor: pointer;
+        transition: background-color 0.12s ease, color 0.12s ease;
+    }
+
+    .fi-select-input option:hover,
+    .fi-select-input option:focus-visible {
+        outline: none;
+        background-color: #f1f5f9;
+        color: var(--pc-marine-800);
+    }
+
+    .fi-select-input option:checked {
+        background-color: var(--pc-marine-800);
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .fi-select-input option::checkmark {
+        color: var(--pc-or-clair);
+    }
+
+    .dark .fi-select-input::picker(select) {
+        background-color: var(--pc-carte-nuit);
+        box-shadow:
+            0 0 0 1px rgba(255, 255, 255, 0.1),
+            0 16px 36px -10px rgba(0, 0, 0, 0.7);
+    }
+
+    .dark .fi-select-input option {
+        background-color: transparent;
+        color: rgb(var(--gray-200));
+    }
+
+    .dark .fi-select-input option:hover,
+    .dark .fi-select-input option:focus-visible {
+        background-color: rgba(255, 255, 255, 0.06);
+        color: #fff;
+    }
+
+    .dark .fi-select-input option:checked {
+        background-color: var(--pc-or);
+        color: var(--pc-marine-950);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .fi-select-input::picker(select) {
+            transition: none;
+        }
+    }
+}
+
+/* ---------- Boutons ---------- */
+
+.fi-layout .fi-btn,
+.fi-layout .fi-icon-btn,
+.fi-layout .fi-input-wrp,
+.fi-layout .fi-select-input,
+.fi-dropdown-panel,
+.fi-dropdown-list-item,
+.fi-layout .fi-tabs,
+.fi-layout .fi-tabs-item,
+.fi-badge,
+.fi-modal-window,
+.fi-no-notification,
+.fi-layout .fi-fo-file-upload .filepond--panel-root {
+    border-radius: 2px !important;
+}
+
+.fi-layout .fi-btn {
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+html:not(.dark) .fi-btn.fi-color-primary:not(.fi-btn-outlined):not(label) {
+    background-color: var(--pc-marine-800);
+    box-shadow: 0 0 0 1px var(--pc-marine-950);
+}
+
+html:not(.dark) .fi-layout .fi-btn.fi-color-primary:not(.fi-btn-outlined):not(label):hover {
+    background-color: var(--pc-marine-900);
+    box-shadow: 0 0 0 1px var(--pc-marine-950), 3px 3px 0 var(--pc-or);
+    transform: translate(-1px, -1px);
+}
+
+html:not(.dark) .fi-layout .fi-btn.fi-color-gray:not(.fi-btn-outlined):not(label) {
+    box-shadow: 0 0 0 1px var(--pc-bord-fort);
+}
+
+html:not(.dark) .fi-layout .fi-btn.fi-color-gray:not(.fi-btn-outlined):not(label):hover {
+    box-shadow: 0 0 0 1px var(--pc-marine-800), 3px 3px 0 rgba(12, 42, 77, 0.12);
+    transform: translate(-1px, -1px);
+}
+
+.fi-layout .fi-btn:active:not(:disabled) {
+    transform: translate(1px, 1px);
+    box-shadow: none;
+}
+
+.fi-link {
+    text-underline-offset: 3px;
+}
+
+/* ---------- Champs ---------- */
+
+.fi-layout .fi-fo-field-wrp-label > span {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #4d5d73;
+}
+
+.fi-layout .fi-fo-field-wrp-label:has(.fi-checkbox-input) > span,
+.fi-layout .fi-fo-field-wrp-label:has(.fi-fo-toggle) > span,
+.fi-layout .fi-fo-field-wrp:has(.fi-fo-toggle) .fi-fo-field-wrp-label > span {
+    font-size: 0.875rem;
+    letter-spacing: 0;
+    text-transform: none;
+    color: inherit;
+}
+
+.fi-fo-field-wrp-label sup {
+    color: var(--pc-or);
+}
+
+.dark .fi-fo-field-wrp-label > span {
+    color: rgb(var(--gray-300));
+}
+
+html:not(.dark) .fi-layout .fi-input-wrp {
+    box-shadow: 0 0 0 1px var(--pc-bord-fort), inset 0 -1.5px 0 var(--pc-marine-800);
+}
+
+html:not(.dark) .fi-layout .fi-input-wrp:focus-within {
+    box-shadow: 0 0 0 1px var(--pc-marine-800), inset 0 -2px 0 var(--pc-or), 0 0 0 4px rgba(196, 149, 58, 0.18);
+}
+
+html:not(.dark) .fi-layout .fi-fo-field-wrp:has(.fi-fo-field-wrp-error-message) .fi-input-wrp {
+    box-shadow: 0 0 0 1px #e5a79f, inset 0 -2px 0 #b42318;
+}
+
+.dark .fi-layout .fi-input-wrp:focus-within {
+    --tw-ring-color: var(--pc-or);
+}
+
+.fi-input,
+.fi-select-input {
+    caret-color: var(--pc-or);
+}
+
+.fi-checkbox-input {
+    border-radius: 1px;
+}
+
+.fi-checkbox-input:checked {
+    background-color: var(--pc-marine-800);
+}
+
+/* ---------- Onglets, badges, divers ---------- */
+
+.fi-tabs {
+    box-shadow: 0 0 0 1px var(--pc-bord);
+}
+
+.fi-tabs-item-active {
+    background: #f3f6fa;
+    box-shadow: inset 0 -2px 0 var(--pc-or);
+}
+
+.dark .fi-tabs {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.dark .fi-tabs-item-active {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.fi-badge {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.fi-avatar {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--pc-or);
+}
+
+.fi-modal-window {
+    box-shadow: 0 0 0 1px var(--pc-bord), 8px 8px 0 rgba(12, 42, 77, 0.1);
+}
+
+.fi-dropdown-panel {
+    box-shadow: 0 0 0 1px var(--pc-bord), 4px 4px 0 rgba(12, 42, 77, 0.08);
+}
+
+.fi-no-notification {
+    box-shadow: 0 0 0 1px var(--pc-bord), 4px 4px 0 rgba(12, 42, 77, 0.08);
+}
+
+/* ---------- Tableau de bord ---------- */
+
+.pc-carte {
+    border-radius: var(--pc-rayon);
+    background: #fff;
+    box-shadow: 0 0 0 1px var(--pc-bord), 4px 4px 0 rgba(12, 42, 77, 0.05);
+}
+
+.dark .pc-carte {
+    background: var(--pc-carte-nuit);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* Titre de bloc : libellé, trait qui court jusqu'au lien */
+.pc-titre-bloc {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.pc-titre-bloc h3 {
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pc-marine-800);
+    white-space: nowrap;
+}
+
+.pc-titre-bloc .pc-num {
+    padding: 1px 5px;
+    border: 1px solid var(--pc-or);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #8a6a28;
+    font-variant-numeric: tabular-nums;
+}
+
+.pc-titre-bloc .pc-trait {
+    flex: 1;
+    height: 1px;
+    background-image: linear-gradient(90deg, var(--pc-bord-fort) 50%, transparent 50%);
+    background-size: 8px 1px;
+}
+
+.pc-titre-bloc a {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #8a6a28;
+    white-space: nowrap;
+}
+
+.pc-titre-bloc a:hover {
+    color: var(--pc-marine-800);
+}
+
+.dark .pc-titre-bloc h3 {
+    color: #fff;
+}
+
+.dark .pc-titre-bloc a,
+.dark .pc-titre-bloc .pc-num {
+    color: var(--pc-or-clair);
+}
+
+.pc-entete-carte {
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid var(--pc-bord);
+    background-color: #f8fafc;
+    background-image:
+        linear-gradient(var(--pc-ligne) 1px, transparent 1px),
+        linear-gradient(90deg, var(--pc-ligne) 1px, transparent 1px);
+    background-size: 12px 12px;
+    border-radius: var(--pc-rayon) var(--pc-rayon) 0 0;
+}
+
+.dark .pc-entete-carte {
+    background-color: rgba(255, 255, 255, 0.02);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Bandeau d'accueil : planche bleue avec élévation de façade */
+.pc-planche {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--pc-rayon);
+    background-color: var(--pc-marine-800);
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px, 60px 60px, 12px 12px, 12px 12px;
+    box-shadow: 0 0 0 1px var(--pc-marine-950), 6px 6px 0 var(--pc-or);
+    color: #fff;
+}
+
+.pc-planche::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border: 1px solid rgba(226, 194, 122, 0.3);
+    pointer-events: none;
+}
+
+.pc-facade {
+    fill: none;
+    stroke: rgba(226, 194, 122, 0.55);
+    stroke-width: 1.2;
+    stroke-linejoin: round;
+}
+
+.pc-facade .pc-facade-fine {
+    stroke: rgba(255, 255, 255, 0.22);
+    stroke-width: 1;
+}
+
+.pc-facade .pc-facade-cote {
+    stroke: rgba(226, 194, 122, 0.8);
+}
+
+.pc-facade text {
+    fill: rgba(226, 194, 122, 0.9);
+    stroke: none;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+}
+
+.pc-facade [pathLength] {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: pc-trace 1.6s cubic-bezier(.65, 0, .35, 1) forwards;
+    animation-delay: var(--pc-delai, 0s);
+}
+
+@keyframes pc-trace {
+    to { stroke-dashoffset: 0; }
+}
+
+.pc-cartouche {
+    display: grid;
+    gap: 1px;
+    border: 1px solid rgba(226, 194, 122, 0.45);
+    background: rgba(226, 194, 122, 0.25);
+    font-size: 0.8rem;
+}
+
+.pc-cartouche > div {
+    padding: 0.55rem 0.85rem;
+    background: #0a2240;
+}
+
+.pc-cartouche dt {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pc-or-clair);
+}
+
+.pc-cartouche dd {
+    margin-top: 2px;
+    color: #fff;
+}
+
+.pc-bouton-planche {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    border-radius: 2px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #fff;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.pc-bouton-planche:hover {
+    border-color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 rgba(255, 255, 255, 0.25);
+}
+
+.pc-bouton-planche.pc-principal {
+    border-color: var(--pc-or);
+    background: var(--pc-or);
+    color: var(--pc-marine-950);
+}
+
+.pc-bouton-planche.pc-principal:hover {
+    background: var(--pc-or-clair);
+    box-shadow: 3px 3px 0 #fff;
+}
+
+/* ---------- Avis et tableaux simples (pages sur mesure) ---------- */
+
+/* Note en marge du plan : filet or à gauche */
+.pc-avis {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.7rem 1rem;
+    border-radius: var(--pc-rayon);
+    background: #fff;
+    box-shadow: 0 0 0 1px var(--pc-bord), inset 3px 0 0 var(--pc-or);
+    font-size: 0.85rem;
+    color: #4d5d73;
+}
+
+.pc-avis strong {
+    color: var(--pc-marine-800);
+}
+
+.dark .pc-avis {
+    background: var(--pc-carte-nuit);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), inset 3px 0 0 var(--pc-or);
+    color: rgb(var(--gray-300));
+}
+
+.dark .pc-avis strong {
+    color: #fff;
+}
+
+.pc-tableau {
+    width: 100%;
+    font-size: 0.875rem;
+}
+
+.pc-tableau thead tr {
+    background-color: #f3f6fa;
+    box-shadow: inset 0 -1.5px 0 var(--pc-marine-800);
+}
+
+.pc-tableau th {
+    padding: 0.65rem 1rem;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-align: left;
+    text-transform: uppercase;
+    color: var(--pc-marine-800);
+}
+
+.pc-tableau td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px dashed var(--pc-bord);
+}
+
+.pc-tableau tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.pc-tableau tbody tr:hover {
+    background-color: rgba(196, 149, 58, 0.06);
+}
+
+.pc-tableau tbody tr:hover > td:first-child {
+    box-shadow: inset 3px 0 0 var(--pc-or);
+}
+
+.dark .pc-tableau thead tr {
+    background-color: rgba(255, 255, 255, 0.03);
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.dark .pc-tableau th {
+    color: rgb(var(--gray-300));
+}
+
+.dark .pc-tableau td {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.pc-apparition {
+    animation: pc-apparition 0.45s ease both;
+}
+
+@keyframes pc-apparition {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+}
+
+/* ---------- Plan de commercialisation (F-PAT-11) ---------- */
+
+.pc-plan-grille {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.pc-plan-batiment {
+    min-width: 14rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1.5px solid var(--pc-marine-800);
+    font-family: ui-serif, Georgia, serif;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: left;
+    color: var(--pc-marine-800);
+}
+
+.pc-plan-niveau {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    width: 4rem;
+    padding: 0.5rem 0.75rem;
+    border-right: 1px dashed var(--pc-bord-fort);
+    background: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: right;
+    color: #64748b;
+}
+
+.pc-plan-case {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px dashed var(--pc-bord);
+    vertical-align: top;
+}
+
+.pc-plan-vide {
+    background: repeating-linear-gradient(-45deg, transparent 0 6px, var(--pc-ligne-forte) 6px 7px);
+}
+
+.pc-lot,
+.pc-lot-pastille {
+    --pc-lot-fond: #ecfdf5;
+    --pc-lot-bord: #059669;
+    --pc-lot-texte: #065f46;
+}
+
+.pc-lot[data-statut='reserve'],
+.pc-lot-pastille[data-statut='reserve'] {
+    --pc-lot-fond: #fffbeb;
+    --pc-lot-bord: #d97706;
+    --pc-lot-texte: #92400e;
+}
+
+.pc-lot[data-statut='vendu'],
+.pc-lot-pastille[data-statut='vendu'] {
+    --pc-lot-fond: #fff1f2;
+    --pc-lot-bord: #e11d48;
+    --pc-lot-texte: #9f1239;
+}
+
+.pc-lot[data-statut='livre'],
+.pc-lot-pastille[data-statut='livre'] {
+    --pc-lot-fond: #eff6ff;
+    --pc-lot-bord: #1f4f86;
+    --pc-lot-texte: #1e3a8a;
+}
+
+.pc-lot[data-statut='bloque'],
+.pc-lot-pastille[data-statut='bloque'] {
+    --pc-lot-fond: #f1f5f9;
+    --pc-lot-bord: #64748b;
+    --pc-lot-texte: #334155;
+}
+
+.pc-lot-pastille {
+    display: inline-block;
+    width: 0.875rem;
+    height: 0.875rem;
+    border: 1.5px solid var(--pc-lot-bord);
+    border-radius: 2px;
+    background: var(--pc-lot-fond);
+}
+
+.pc-lot {
+    position: relative;
+    display: flex;
+    min-width: 4.5rem;
+    flex-direction: column;
+    padding: 0.375rem 0.5rem;
+    border: 1.5px solid var(--pc-lot-bord);
+    border-radius: var(--pc-rayon);
+    background: var(--pc-lot-fond);
+    color: var(--pc-lot-texte);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pc-lot[data-statut='bloque'] {
+    background: repeating-linear-gradient(-45deg, var(--pc-lot-fond) 0 5px, #e2e8f0 5px 6px);
+}
+
+.pc-lot:hover,
+.pc-lot:focus-visible {
+    z-index: 5;
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--pc-lot-bord);
+    outline: none;
+}
+
+.pc-lot-numero {
+    font-family: ui-monospace, monospace;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.pc-lot-type {
+    font-size: 0.6875rem;
+    opacity: 0.8;
+}
+
+.pc-lot-bulle {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    z-index: 20;
+    width: max-content;
+    max-width: 16rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--pc-rayon);
+    background: var(--pc-marine-900);
+    box-shadow: 3px 3px 0 var(--pc-or);
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: #fff;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 4px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.pc-lot:hover .pc-lot-bulle,
+.pc-lot:focus-visible .pc-lot-bulle {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+/* Le conteneur défile horizontalement, donc coupe verticalement : la première ligne ouvre sa bulle vers le bas. */
+.pc-plan-grille tbody tr:first-child .pc-lot-bulle {
+    top: calc(100% + 8px);
+    bottom: auto;
+}
+
+.dark .pc-plan-batiment {
+    color: var(--pc-or-clair);
+    border-color: var(--pc-or);
+}
+
+.dark .pc-plan-niveau {
+    background: var(--pc-carte-nuit);
+}
+
+.dark .pc-lot {
+    background: color-mix(in srgb, var(--pc-lot-bord) 18%, transparent);
+    color: #f8fafc;
+}
+
+/* ---------- Animations pilotées par resources/js/application.js ---------- */
+
+/* Masqués jusqu'au démarrage du script (le filet de l'en-tête les révèle au bout de 2,5 s). */
+.pc-js-app .fi-header,
+.pc-js-app .fi-page .fi-tabs,
+.pc-js-app .fi-page .fi-ta-ctn,
+.pc-js-app .fi-page .fi-wi-widget {
+    visibility: hidden;
+}
+
+/* Le script dessine la façade et fait apparaître les cartes : on coupe les animations CSS équivalentes. */
+.pc-anime-app .pc-apparition,
+.pc-anime-app .pc-facade [pathLength] {
+    animation: none;
+    stroke-dashoffset: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pc-apparition,
+    .pc-facade [pathLength] {
+        animation: none;
+        stroke-dashoffset: 0;
+    }
+
+    .fi-btn:hover,
+    .pc-bouton-planche:hover {
+        transform: none !important;
+    }
+}
+
+/* ---------- Écran de chargement (partials/chargement) ---------- */
+
+.pc-chargement {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    transition: opacity 0.55s ease, visibility 0.55s;
+}
+
+.pc-chargement-fond {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background:
+        radial-gradient(circle at 50% 42%, rgba(196, 149, 58, 0.1), transparent 55%),
+        var(--pc-papier);
+    animation: pc-chargement-apparaitre 0.3s ease 0.25s both;
+}
+
+.pc-chargement-intro .pc-chargement-fond {
+    animation: none;
+}
+
+.pc-chargement-fini {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.pc-chargement-scene {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pc-chargement-fini .pc-chargement-scene {
+    transform: scale(1.06) translateY(-6px);
+}
+
+.pc-chargement-logo {
+    position: relative;
+    display: block;
+    width: 7.5rem;
+}
+
+.pc-chargement-logo img {
+    display: block;
+    width: 100%;
+    height: auto;
+    animation: pc-logo-monter 1s cubic-bezier(0.2, 0.8, 0.2, 1) both, pc-logo-respirer 2.4s ease-in-out 1.1s infinite;
+}
+
+.pc-chargement-reflet {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.9) 50%, transparent 62%) no-repeat;
+    background-size: 260% 100%;
+    -webkit-mask: var(--pc-embleme) center / contain no-repeat;
+    mask: var(--pc-embleme) center / contain no-repeat;
+    animation: pc-logo-reflet 1.8s ease-in-out 0.8s infinite;
+    background-position: 130% 0;
+}
+
+.pc-chargement-nom {
+    margin-top: 1rem;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.55rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pc-marine-800);
+    animation: pc-nom-espacer 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.35s both;
+}
+
+.pc-chargement-sous {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.45rem;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: var(--pc-or);
+    animation: pc-chargement-apparaitre 0.6s ease 0.6s both;
+}
+
+.pc-chargement-sous::before,
+.pc-chargement-sous::after {
+    content: '';
+    width: 1.6rem;
+    height: 1px;
+    background: var(--pc-or);
+    transform-origin: center;
+    animation: pc-filet-etendre 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.7s both;
+}
+
+.pc-chargement-barre {
+    position: relative;
+    width: 9rem;
+    height: 2px;
+    margin-top: 1.6rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--pc-bord);
+    animation: pc-chargement-apparaitre 0.4s ease 0.8s both;
+}
+
+.pc-chargement-barre > span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 40%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--pc-or), var(--pc-or-clair));
+    animation: pc-barre-glisser 1.1s ease-in-out infinite;
+}
+
+@keyframes pc-chargement-apparaitre {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes pc-logo-monter {
+    from {
+        clip-path: inset(100% 0 0 0);
+        transform: translateY(14px);
+    }
+
+    to {
+        clip-path: inset(0 0 0 0);
+        transform: none;
+    }
+}
+
+@keyframes pc-logo-respirer {
+    50% {
+        transform: scale(1.035);
+    }
+}
+
+@keyframes pc-logo-reflet {
+    from {
+        background-position: 130% 0;
+    }
+
+    to {
+        background-position: -30% 0;
+    }
+}
+
+@keyframes pc-nom-espacer {
+    from {
+        opacity: 0;
+        letter-spacing: 0.5em;
+    }
+}
+
+@keyframes pc-filet-etendre {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+@keyframes pc-barre-glisser {
+    from {
+        transform: translateX(-100%);
+    }
+
+    to {
+        transform: translateX(250%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pc-chargement-fond,
+    .pc-chargement-logo img,
+    .pc-chargement-reflet,
+    .pc-chargement-nom,
+    .pc-chargement-sous,
+    .pc-chargement-sous::before,
+    .pc-chargement-sous::after,
+    .pc-chargement-barre,
+    .pc-chargement-barre > span {
+        animation: none;
+    }
+}
+/* ---------- Chargement des données (application.js) ---------- */
+
+.pc-progression {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 90;
+    height: 3px;
+    pointer-events: none;
+    opacity: 0;
+    transform: scaleX(0);
+    transform-origin: left;
+    background: linear-gradient(90deg, var(--pc-or), var(--pc-or-clair), var(--pc-or));
+    box-shadow: 0 0 10px rgba(196, 149, 58, 0.55);
+}
+
+.pc-progression-active {
+    opacity: 1;
+    transform: scaleX(0.88);
+    transition: transform 7s cubic-bezier(0.08, 0.7, 0.2, 1), opacity 0.15s ease;
+}
+
+.pc-progression-fin {
+    opacity: 0;
+    transform: scaleX(1);
+    transition: transform 0.25s ease-out, opacity 0.35s ease 0.2s;
+}
+
+/* Page qui arrive : la barre reprend là où le clic du lien l'avait laissée. */
+.pc-progression-reprise.pc-progression-active {
+    animation: pc-progression-reprise 3s cubic-bezier(0.08, 0.7, 0.2, 1) both;
+}
+
+@keyframes pc-progression-reprise {
+    from {
+        transform: scaleX(0.3);
+    }
+
+    to {
+        transform: scaleX(0.88);
+    }
+}
+
+/* Changement de page : le contenu actuel s'efface doucement en attendant le suivant. */
+.fi-main {
+    transition: opacity 0.3s ease;
+}
+
+.pc-navigation .fi-main {
+    opacity: 0.55;
+    transition-delay: 0.15s;
+}
+
+/* Tableau en cours de mise à jour (recherche, filtres, tri, pagination). */
+.fi-ta-ctn {
+    position: relative;
+}
+
+.fi-ta-content {
+    transition: opacity 0.25s ease, filter 0.25s ease;
+}
+
+.pc-ta-maj .fi-ta-content {
+    opacity: 0.45;
+    filter: saturate(0.5);
+    pointer-events: none;
+}
+
+.pc-ta-maj::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    z-index: 5;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--pc-or), var(--pc-or-clair), transparent) no-repeat;
+    background-size: 40% 100%;
+    animation: pc-ta-balayage 1s ease-in-out infinite;
+}
+
+@keyframes pc-ta-balayage {
+    from {
+        background-position: -40% 0;
+    }
+
+    to {
+        background-position: 140% 0;
+    }
+}
+
+/* Widgets chargés en différé : squelette à reflet plutôt que bloc gris clignotant. */
+.fi-loading-section .fi-section {
+    position: relative;
+    overflow: hidden;
+    animation: none !important;
+    border-radius: 14px !important;
+    background-color: #fff;
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.06), 0 12px 32px -12px rgba(12, 42, 77, 0.12) !important;
+}
+
+.fi-loading-section .fi-section::before {
+    content: '';
+    position: absolute;
+    inset: 1.25rem 1.5rem;
+    background:
+        linear-gradient(#eef2f6, #eef2f6) 0 0 / 38% 0.65rem no-repeat,
+        linear-gradient(#eef2f6, #eef2f6) 0 1.5rem / 62% 1.5rem no-repeat,
+        linear-gradient(#f3f6f9, #f3f6f9) 0 3.7rem / 28% 0.6rem no-repeat,
+        linear-gradient(#f3f6f9, #f3f6f9) 0 100% / 100% 35% no-repeat;
+}
+
+.fi-loading-section .fi-section::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.85) 50%, transparent 70%);
+    transform: translateX(-100%);
+    animation: pc-squelette 1.4s ease-in-out infinite;
+}
+
+@keyframes pc-squelette {
+    to {
+        transform: translateX(100%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pc-progression-active,
+    .pc-progression-fin,
+    .fi-main,
+    .fi-ta-content {
+        transition: none;
+    }
+
+    .pc-ta-maj::after,
+    .fi-loading-section .fi-section::after {
+        animation: none;
+    }
+}
+
+/* ---------- Téléphones et petites tablettes ---------- */
+
+@media (max-width: 767px) {
+    .fi-main {
+        padding-inline: 0.75rem;
+    }
+
+    .fi-header-heading {
+        font-size: 1.6rem;
+    }
+
+    .fi-topbar nav {
+        gap: 0.5rem;
+        padding-inline: 0.75rem;
+    }
+
+    .fi-global-search-field {
+        max-width: 9.5rem;
+    }
+
+    /* Actions de ligne : icônes seules, le libellé reste lu par les lecteurs d'écran */
+    .fi-ta-actions {
+        gap: 0;
+    }
+
+    .fi-ta-actions-cell > div {
+        padding-inline: 0.25rem;
+    }
+
+    .fi-ta-actions .fi-link {
+        gap: 0;
+        min-width: 2.6rem;
+        min-height: 2.6rem;
+    }
+
+    .fi-ta-actions .fi-link > span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .fi-ta-actions .fi-link-icon {
+        width: 1.15rem;
+        height: 1.15rem;
+    }
+
+    /* Un appui sur la ligne ouvre déjà la modification */
+    .fi-ta-actions [wire\:click^="mountTableAction('edit'"] {
+        display: none;
+    }
+
+    /* Ombre sur le bord tant qu'il reste des colonnes à faire défiler */
+    .fi-ta-content {
+        background:
+            linear-gradient(to right, #fff 30%, rgba(255, 255, 255, 0)) left / 2rem 100% no-repeat local,
+            linear-gradient(to left, #fff 30%, rgba(255, 255, 255, 0)) right / 2rem 100% no-repeat local,
+            radial-gradient(farthest-side at 0 50%, rgba(12, 42, 77, 0.2), transparent) left / 0.75rem 100% no-repeat scroll,
+            radial-gradient(farthest-side at 100% 50%, rgba(12, 42, 77, 0.2), transparent) right / 0.75rem 100% no-repeat scroll;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .dark .fi-ta-content {
+        background: none;
+    }
+
+    .fi-ta-header-cell,
+    .fi-ta-cell .fi-ta-text,
+    .fi-ta-cell .fi-ta-icon {
+        padding-inline: 0.5rem;
+    }
+
+    .fi-ta-cell .fi-ta-text-item {
+        font-size: 0.875rem;
+    }
+
+    .fi-ta-header-toolbar {
+        padding-inline: 0.75rem;
+    }
+
+    .pc-titre-bloc {
+        flex-wrap: wrap;
+        row-gap: 0.4rem;
+    }
+
+    .pc-titre-bloc .pc-trait {
+        min-width: 1.5rem;
+    }
+
+    .fi-modal-window {
+        border-radius: var(--pc-rayon);
+    }
+
+    .fi-tabs {
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+}
