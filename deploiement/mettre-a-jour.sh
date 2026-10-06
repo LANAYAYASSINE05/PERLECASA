@@ -31,7 +31,7 @@ principal() {
     local deja_installe=0
     [ -d vendor ] && deja_installe=1
     [ "$deja_installe" = 1 ] && "$PHP" artisan down --retry=30 || true
-    trap '"$PHP" artisan up >/dev/null 2>&1 || true' EXIT
+    trap "\"$PHP\" artisan up >/dev/null 2>&1 || true" EXIT
 
     echo "Récupération du code (origin/main)..."
     git fetch --quiet origin main
