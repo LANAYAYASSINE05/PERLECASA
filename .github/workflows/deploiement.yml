@@ -1,8 +1,7 @@
 name: Déploiement production
 
+# Déclenchement manuel uniquement : le déploiement courant se fait depuis le PC (deploiement/deployer.ps1).
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
