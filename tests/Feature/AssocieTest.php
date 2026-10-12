@@ -154,6 +154,23 @@ it('montre à l’associé ses seuls investissements', function () {
     $this->get("/associes/{$autre->id}/releve")->assertForbidden();
 });
 
+it('range l’espace associé en pages de la barre latérale', function () {
+    $this->actingAs(utilisateur(Role::Associe))->get('/')
+        ->assertOk()
+        ->assertSee('/mes-investissements', false)
+        ->assertSee('/espace-associe/resultat', false)
+        ->assertSee('/espace-associe/tresorerie', false)
+        ->assertSee('/espace-associe/programmes', false)
+        ->assertDontSee('/encaissements"', false);
+});
+
+it('ne montre pas l’espace associé dans la barre latérale du comptable', function () {
+    $this->actingAs(utilisateur(Role::Comptable))->get('/')
+        ->assertOk()
+        ->assertDontSee('/espace-associe/', false)
+        ->assertDontSee('/mes-investissements', false);
+});
+
 it('ferme à l’associé les écrans métier et le récapitulatif', function (string $url) {
     $this->actingAs(utilisateur(Role::Associe))->get($url)->assertForbidden();
 })->with(['/ventes', '/encaissements', '/decaissements', '/comptes', '/utilisateurs', '/associes']);
