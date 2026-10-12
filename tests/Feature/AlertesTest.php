@@ -17,7 +17,6 @@ it('notifie un encaissement aux autres utilisateurs qui ont l’écran, pas à s
     $auteur = utilisateur(Role::Comptable);
     $admin = utilisateur(Role::Administrateur);
     $caissier = utilisateur(Role::Caissier);
-    $associe = utilisateur(Role::Associe);
     $vente = vente(500000);
 
     $this->actingAs($auteur);
@@ -31,8 +30,7 @@ it('notifie un encaissement aux autres utilisateurs qui ont l’écran, pas à s
     expect($titres->all())->toHaveCount(1)
         ->and($titres->first())->toStartWith('Encaissement ENC-')
         ->and($auteur->notifications()->count())->toBe(0)
-        ->and($caissier->notifications()->count())->toBe(0)
-        ->and($associe->notifications()->count())->toBe(0);
+        ->and($caissier->notifications()->count())->toBe(0);
 });
 
 it('alerte une opération de caisse non justifiée, puis sa justification', function () {

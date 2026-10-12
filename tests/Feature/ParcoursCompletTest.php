@@ -49,7 +49,7 @@ it('ouvre chaque écran selon le rôle', function (Role $role) {
 
         expect($this->get($url)->status())->toBe($attendu ? 200 : 403, "{$role->value} → {$nom}");
     }
-})->with([Role::Administrateur, Role::Comptable, Role::Caissier, Role::Associe]);
+})->with(Role::cases());
 
 it('manipule chaque tableau : recherche, tri, filtres, pagination, formulaires', function (string $url, string $page) {
     $this->actingAs(utilisateur(Role::Administrateur));

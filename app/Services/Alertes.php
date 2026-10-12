@@ -151,7 +151,7 @@ class Alertes
         $destinataires = User::where('actif', true)
             ->when($auteur, fn ($q) => $q->whereKeyNot($auteur))
             ->get()
-            ->filter(fn (User $u) => $u->accede($ecran) && $u->recoitAlertes());
+            ->filter(fn (User $u) => $u->accede($ecran) && ! $u->estEncaisseur());
 
         $diffusion = true;
 

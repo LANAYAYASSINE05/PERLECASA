@@ -15,13 +15,11 @@ class User extends Authenticatable implements FilamentUser
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    private const ECRANS_GESTION = ['tableau', 'ventes', 'encaissements', 'decaissements', 'charges', 'fournisseurs', 'comptes', 'referentiel'];
-
     /** Écrans ouverts à chaque rôle ; l'administrateur a tout. */
     private const ECRANS = [
-        'comptable' => self::ECRANS_GESTION,
-        'associe' => self::ECRANS_GESTION,
+        'comptable' => ['tableau', 'ventes', 'encaissements', 'decaissements', 'charges', 'fournisseurs', 'comptes', 'referentiel'],
         'caissier' => ['tableau', 'decaissements'],
+        'encaisseur' => ['tableau', 'encaissements'],
     ];
 
     protected $fillable = [
@@ -62,9 +60,9 @@ class User extends Authenticatable implements FilamentUser
         return $this->role === Role::Caissier;
     }
 
-    public function recoitAlertes(): bool
+    public function estEncaisseur(): bool
     {
-        return $this->role !== Role::Associe;
+        return $this->role === Role::Encaisseur;
     }
 
     public function accede(string $ecran): bool

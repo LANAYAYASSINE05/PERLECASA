@@ -84,7 +84,7 @@ class CompteResource extends Resource
             ->when($type, fn ($q) => $q->where('type', $type))
             ->orderBy('type')->orderBy('nom')
             ->get()
-            ->mapWithKeys(fn (Compte $c) => [$c->id => "{$c->nom} — ".Montant::mad($c->solde())])
+            ->mapWithKeys(fn (Compte $c) => [$c->id => auth()->user()?->estEncaisseur() ? $c->nom : "{$c->nom} — ".Montant::mad($c->solde())])
             ->all();
     }
 

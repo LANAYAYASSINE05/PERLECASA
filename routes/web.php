@@ -26,7 +26,7 @@ Route::middleware('auth')->group(function () {
     })->name('ventes.facture');
 
     Route::get('/encaissements/{encaissement}/recu', function (Encaissement $encaissement) {
-        abort_unless(auth()->user()->accede('encaissements'), 403);
+        abort_unless(auth()->user()->can('view', $encaissement), 403);
 
         return PiecesExcel::telecharger(PiecesCommerciales::recu($encaissement));
     })->name('encaissements.recu');

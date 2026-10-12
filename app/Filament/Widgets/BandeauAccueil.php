@@ -32,7 +32,7 @@ class BandeauAccueil extends Widget
             ['ecran' => 'charges', 'libelle' => 'Charges à payer', 'icone' => 'heroicon-o-calendar-days', 'url' => ChargeFixeResource::getUrl('index')],
         ])->filter(fn (array $a) => $user->accede($a['ecran']))->values()->all();
 
-        $nonJustifiees = DecaissementResource::getEloquentQuery()->caisseNonJustifiee();
+        $nonJustifiees = $user->accede('decaissements') ? DecaissementResource::getEloquentQuery()->caisseNonJustifiee() : null;
 
         return [
             'salutation' => now()->hour < 18 ? 'Bonjour' : 'Bonsoir',
@@ -44,7 +44,7 @@ class BandeauAccueil extends Widget
             'tresorerie' => $user->accede('comptes')
                 ? Montant::mad(Compte::where('actif', true)->get()->sum(fn (Compte $c) => $c->solde()))
                 : '—',
-            'nonJustifiees' => $nonJustifiees->count().' · '.Montant::mad($nonJustifiees->sum('montant')),
+            'nonJustifiees' => $nonJustifiees ? $nonJustifiees->count().' · '.Montant::mad($nonJustifiees->sum('montant')) : null,
         ];
     }
 }

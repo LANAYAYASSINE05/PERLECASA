@@ -80,10 +80,12 @@
                     <dt>Trésorerie</dt>
                     <dd>{{ $tresorerie }}</dd>
                 </div>
-                <div>
-                    <dt>Caisse à justifier</dt>
-                    <dd>{{ $nonJustifiees }}</dd>
-                </div>
+                @if ($nonJustifiees)
+                    <div>
+                        <dt>Caisse à justifier</dt>
+                        <dd>{{ $nonJustifiees }}</dd>
+                    </div>
+                @endif
             </dl>
         </div>
     </section>

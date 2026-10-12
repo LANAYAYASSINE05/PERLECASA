@@ -23,6 +23,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class EncaissementResource extends Resource
 {
@@ -41,6 +42,12 @@ class EncaissementResource extends Resource
     protected static ?string $modelLabel = 'encaissement';
 
     protected static ?string $navigationLabel = 'Encaissements';
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->when(auth()->user()?->estEncaisseur(), fn ($q) => $q->where('cree_par', auth()->id()));
+    }
 
     public static function form(Form $form): Form
     {

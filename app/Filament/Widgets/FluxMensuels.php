@@ -19,7 +19,9 @@ class FluxMensuels extends ChartWidget
 
     public static function canView(): bool
     {
-        return (bool) auth()->user()?->accede('encaissements');
+        $user = auth()->user();
+
+        return $user && $user->accede('encaissements') && ! $user->estEncaisseur();
     }
 
     protected function getData(): array
