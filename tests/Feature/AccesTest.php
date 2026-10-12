@@ -22,6 +22,12 @@ it('ouvre les écrans selon le rôle', function (Role $role, string $url, int $s
     'caissier : encaissements interdits' => [Role::Caissier, '/encaissements', 403],
     'caissier : charges fixes interdites' => [Role::Caissier, '/charges-fixes', 403],
     'caissier : comptes interdits' => [Role::Caissier, '/comptes', 403],
+    'associé : tableau de bord' => [Role::Associe, '/', 200],
+    'associé : ventes' => [Role::Associe, '/ventes', 200],
+    'associé : encaissements' => [Role::Associe, '/encaissements', 200],
+    'associé : décaissements' => [Role::Associe, '/decaissements', 200],
+    'associé : comptes' => [Role::Associe, '/comptes', 200],
+    'associé : utilisateurs interdits' => [Role::Associe, '/utilisateurs', 403],
     'administrateur : utilisateurs' => [Role::Administrateur, '/utilisateurs', 200],
 ]);
 

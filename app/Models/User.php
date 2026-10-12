@@ -15,9 +15,12 @@ class User extends Authenticatable implements FilamentUser
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    private const ECRANS_GESTION = ['tableau', 'ventes', 'encaissements', 'decaissements', 'charges', 'fournisseurs', 'comptes', 'referentiel'];
+
     /** Écrans ouverts à chaque rôle ; l'administrateur a tout. */
     private const ECRANS = [
-        'comptable' => ['tableau', 'ventes', 'encaissements', 'decaissements', 'charges', 'fournisseurs', 'comptes', 'referentiel'],
+        'comptable' => self::ECRANS_GESTION,
+        'associe' => self::ECRANS_GESTION,
         'caissier' => ['tableau', 'decaissements'],
     ];
 
@@ -57,6 +60,11 @@ class User extends Authenticatable implements FilamentUser
     public function estCaissier(): bool
     {
         return $this->role === Role::Caissier;
+    }
+
+    public function recoitAlertes(): bool
+    {
+        return $this->role !== Role::Associe;
     }
 
     public function accede(string $ecran): bool
