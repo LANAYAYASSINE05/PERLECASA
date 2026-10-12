@@ -2,7 +2,6 @@
 
 namespace App\Filament\Pages;
 
-use App\Enums\Role;
 use App\Models\User;
 use App\Support\Montant;
 use Filament\Pages\Page;
@@ -34,26 +33,25 @@ class Associes extends Page implements HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query(User::query()
-                ->where('role', Role::Associe)
-                ->withSum('apports', 'montant')
-                ->withSum('remboursements', 'montant'))
+            ->query(User::query()->associesAvecSoldes())
             ->defaultSort('name')
             ->emptyStateHeading('Aucun associé')
             ->emptyStateDescription('Créez un utilisateur avec le rôle « Associé » dans Utilisateurs.')
             ->columns([
                 Tables\Columns\TextColumn::make('name')->label('Associé')->searchable()->sortable()->weight('bold')
-                    ->description(fn (User $u) => $u->email),
+                    ->description(fn (User $u) => collect([$u->email, $u->telephone])->filter()->implode(' · ')),
                 Tables\Columns\IconColumn::make('actif')->boolean()->alignCenter()->visibleFrom('md'),
+                Tables\Columns\TextColumn::make('rib')->label('RIB')->placeholder('Non renseigné')->copyable()->visibleFrom('xl')
+                    ->description(fn (User $u) => $u->banque),
                 Tables\Columns\TextColumn::make('apports_sum_montant')->label('Apporté')->alignEnd()->sortable()->color('success')
                     ->formatStateUsing(fn ($state) => Montant::mad((float) $state))->default(0),
                 Tables\Columns\TextColumn::make('remboursements_sum_montant')->label('Remboursé')->alignEnd()->sortable()->color('danger')
                     ->formatStateUsing(fn ($state) => Montant::mad((float) $state))->default(0),
                 Tables\Columns\TextColumn::make('net')->label('Net investi')->alignEnd()->weight('bold')
-                    ->state(fn (User $u) => self::net($u))
+                    ->state(fn (User $u) => $u->netCharge())
                     ->formatStateUsing(fn ($state) => Montant::mad((float) $state)),
                 Tables\Columns\TextColumn::make('part')->label('Part')->alignEnd()->badge()->color('warning')
-                    ->state(fn (User $u) => User::part(self::net($u)))
+                    ->state(fn (User $u) => User::part($u->netCharge()))
                     ->formatStateUsing(fn ($state) => number_format((float) $state, 2, ',', ' ').' %'),
             ])
             ->actions([
@@ -62,10 +60,5 @@ class Associes extends Page implements HasTable
                     ->url(fn (User $u) => route('associes.releve', $u))
                     ->extraAttributes(['download' => true]),
             ]);
-    }
-
-    private static function net(User $u): float
-    {
-        return (float) $u->apports_sum_montant - (float) $u->remboursements_sum_montant;
     }
 }

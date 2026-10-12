@@ -14,6 +14,8 @@ class MesInvestissements extends PageAssocie
 
     protected static ?string $slug = 'mes-investissements';
 
+    protected static ?string $navigationGroup = 'Mon investissement';
+
     protected static ?int $navigationSort = 1;
 
     protected function getHeaderActions(): array

@@ -95,6 +95,10 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')
             ->navigationGroups([
+                NavigationGroup::make('Mon investissement'),
+                NavigationGroup::make('La société'),
+                NavigationGroup::make('Programmes immobiliers'),
+                NavigationGroup::make('Vie sociale'),
                 NavigationGroup::make('Encaissements'),
                 NavigationGroup::make('Décaissements'),
                 NavigationGroup::make('Trésorerie'),

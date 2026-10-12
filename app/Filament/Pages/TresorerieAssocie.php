@@ -16,7 +16,9 @@ class TresorerieAssocie extends PageAssocie
 
     protected static ?string $slug = 'espace-associe/tresorerie';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?string $navigationGroup = 'La société';
+
+    protected static ?int $navigationSort = 2;
 
     protected function periodeParDefaut(): string
     {

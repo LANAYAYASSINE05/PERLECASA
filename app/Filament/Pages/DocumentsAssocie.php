@@ -23,7 +23,9 @@ class DocumentsAssocie extends PageAssocie implements HasTable
 
     protected static ?string $slug = 'espace-associe/documents';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?string $navigationGroup = 'Vie sociale';
+
+    protected static ?int $navigationSort = 3;
 
     public function table(Table $table): Table
     {

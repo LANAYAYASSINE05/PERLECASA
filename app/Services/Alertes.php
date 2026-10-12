@@ -5,6 +5,9 @@ namespace App\Services;
 use App\Enums\Role;
 use App\Enums\StatutBonCommande;
 use App\Enums\TypeDecaissement;
+use App\Filament\Pages\ActualitesAssocie;
+use App\Filament\Pages\AgendaAssocie;
+use App\Filament\Pages\Associes;
 use App\Filament\Pages\DemandesAssocie;
 use App\Filament\Pages\DocumentsAssocie;
 use App\Filament\Pages\MesInvestissements;
@@ -14,12 +17,14 @@ use App\Filament\Resources\DecaissementResource;
 use App\Filament\Resources\DemandeAssocieResource;
 use App\Filament\Resources\EncaissementResource;
 use App\Filament\Resources\VenteResource;
+use App\Models\Actualite;
 use App\Models\BonCommande;
 use App\Models\ChargeFixe;
 use App\Models\Decaissement;
 use App\Models\DemandeAssocie;
 use App\Models\DocumentAssocie;
 use App\Models\Encaissement;
+use App\Models\Evenement;
 use App\Models\User;
 use App\Models\Vente;
 use App\Support\Montant;
@@ -138,24 +143,45 @@ class Alertes
 
     public static function documentAssocie(DocumentAssocie $d): void
     {
-        if (! self::$actives || ! auth()->check()) {
-            return;
-        }
-
-        $notification = Notification::make()
+        self::aTousLesAssocies(fn () => Notification::make()
             ->info()
             ->icon('heroicon-o-folder-open')
             ->title('Nouveau document : '.$d->titre)
             ->body(self::corps($d->categorie->getLabel(), $d->date_document->format('d/m/Y')))
-            ->actions([self::voir(DocumentsAssocie::getUrl())]);
+            ->actions([self::voir(DocumentsAssocie::getUrl())]));
+    }
 
-        DB::afterCommit(function () use ($notification): void {
-            $diffusion = true;
+    public static function actualite(Actualite $a): void
+    {
+        self::aTousLesAssocies(fn () => Notification::make()
+            ->info()
+            ->icon('heroicon-o-megaphone')
+            ->title('Actualité : '.$a->titre)
+            ->body(e(str($a->contenu)->limit(140)))
+            ->actions([self::voir(ActualitesAssocie::getUrl())]));
+    }
 
-            foreach (User::where('actif', true)->where('role', Role::Associe)->get() as $associe) {
-                $diffusion = self::notifier($associe, $notification, $diffusion);
-            }
-        });
+    public static function evenement(Evenement $e): void
+    {
+        self::aTousLesAssocies(fn () => Notification::make()
+            ->info()
+            ->icon('heroicon-o-calendar-days')
+            ->title("{$e->type->getLabel()} le {$e->date_debut->format('d/m/Y')}")
+            ->body(self::corps($e->titre, (string) $e->lieu))
+            ->actions([self::voir(AgendaAssocie::getUrl())]));
+    }
+
+    /** Un changement de RIB doit être connu de l'administrateur avant tout remboursement. */
+    public static function coordonneesAssocie(User $associe, bool $ribModifie): void
+    {
+        self::depuisAction('associes', fn () => Notification::make()
+            ->status($ribModifie ? 'warning' : 'info')
+            ->icon('heroicon-o-identification')
+            ->title($ribModifie ? "{$associe->name} a modifié son RIB" : "{$associe->name} a mis à jour ses coordonnées")
+            ->body(e($ribModifie
+                ? collect([$associe->banque, $associe->rib ? 'RIB se terminant par '.substr($associe->rib, -4) : 'RIB supprimé'])->filter()->implode(' · ')
+                : (string) $associe->telephone))
+            ->actions([self::voir(Associes::getUrl())]));
     }
 
     public static function demandeAssocie(DemandeAssocie $d): void
@@ -229,6 +255,22 @@ class Alertes
         }
 
         DB::afterCommit(fn () => self::envoyer($ecran, $notification(), auth()->id()));
+    }
+
+    private static function aTousLesAssocies(\Closure $notification): void
+    {
+        if (! self::$actives || ! auth()->check()) {
+            return;
+        }
+
+        DB::afterCommit(function () use ($notification): void {
+            $notification = $notification();
+            $diffusion = true;
+
+            foreach (User::where('actif', true)->where('role', Role::Associe)->get() as $associe) {
+                $diffusion = self::notifier($associe, $notification, $diffusion);
+            }
+        });
     }
 
     private static function envoyer(string $ecran, Notification $notification, ?int $auteur = null): void

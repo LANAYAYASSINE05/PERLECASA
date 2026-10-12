@@ -8,6 +8,7 @@ use App\Enums\TypeEncaissement;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -91,6 +92,20 @@ class User extends Authenticatable implements FilamentUser
     public function remboursements(): HasMany
     {
         return $this->hasMany(Decaissement::class, 'associe_id')->where('type', TypeDecaissement::RemboursementAssocie);
+    }
+
+    /** Associés avec apports_sum_montant et remboursements_sum_montant. */
+    public function scopeAssociesAvecSoldes(Builder $query): Builder
+    {
+        return $query->where('role', Role::Associe)
+            ->withSum('apports', 'montant')
+            ->withSum('remboursements', 'montant');
+    }
+
+    /** Net investi d'un associé chargé par associesAvecSoldes(). */
+    public function netCharge(): float
+    {
+        return (float) $this->apports_sum_montant - (float) $this->remboursements_sum_montant;
     }
 
     public function totalApporte(): float

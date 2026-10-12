@@ -16,7 +16,9 @@ class ResultatAssocie extends PageAssocie
 
     protected static ?string $slug = 'espace-associe/resultat';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?string $navigationGroup = 'La société';
+
+    protected static ?int $navigationSort = 1;
 
     protected function getFooterWidgets(): array
     {

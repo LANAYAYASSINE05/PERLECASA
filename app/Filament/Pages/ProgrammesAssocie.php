@@ -13,7 +13,9 @@ class ProgrammesAssocie extends PageAssocie
 
     protected static ?string $slug = 'espace-associe/programmes';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?string $navigationGroup = 'Programmes immobiliers';
+
+    protected static ?int $navigationSort = 1;
 
     protected function getHeaderWidgets(): array
     {
