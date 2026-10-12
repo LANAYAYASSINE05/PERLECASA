@@ -50,7 +50,12 @@ class Encaissement extends Model
             $e->cree_par ??= auth()->id();
         });
 
-        static::created(fn (Encaissement $e) => Alertes::encaissement($e));
+        static::created(function (Encaissement $e): void {
+            Alertes::encaissement($e);
+            Alertes::investissement($e, 'enregistré');
+        });
+        static::updated(fn (Encaissement $e) => Alertes::investissement($e, 'modifié'));
+        static::deleted(fn (Encaissement $e) => Alertes::investissement($e, 'supprimé'));
     }
 
     public function vente(): BelongsTo

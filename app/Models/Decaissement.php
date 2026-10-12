@@ -69,10 +69,18 @@ class Decaissement extends Model
             $d->cree_par ??= auth()->id();
         });
 
-        static::created(fn (Decaissement $d) => Alertes::decaissementCree($d));
-        static::updated(fn (Decaissement $d) => Alertes::decaissementModifie($d));
+        static::created(function (Decaissement $d): void {
+            Alertes::decaissementCree($d);
+            Alertes::investissement($d, 'enregistré');
+        });
+        static::updated(function (Decaissement $d): void {
+            Alertes::decaissementModifie($d);
+            Alertes::investissement($d, 'modifié');
+        });
 
         static::deleted(function (Decaissement $d): void {
+            Alertes::investissement($d, 'supprimé');
+
             if ($d->piece_justificative) {
                 Storage::disk(self::DISQUE)->delete($d->piece_justificative);
             }

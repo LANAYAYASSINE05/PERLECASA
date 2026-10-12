@@ -2,17 +2,23 @@
 
 use App\Enums\ModePaiement;
 use App\Enums\Role;
+use App\Enums\TypeCompte;
 use App\Enums\TypeDecaissement;
 use App\Enums\TypeEncaissement;
 use App\Filament\Pages\Associes;
 use App\Filament\Resources\DecaissementResource\Pages\ManageDecaissements;
 use App\Filament\Resources\EncaissementResource\Pages\ManageEncaissements;
+use App\Filament\Widgets\BandeauAccueil;
 use App\Filament\Widgets\MesApports;
 use App\Filament\Widgets\MesRemboursements;
+use App\Filament\Widgets\ResultatSimplifie;
 use App\Filament\Widgets\ResumeInvestissements;
+use App\Filament\Widgets\SyntheseProgrammes;
+use App\Filament\Widgets\SyntheseTresorerie;
 use App\Models\Compte;
 use App\Models\Decaissement;
 use App\Models\Encaissement;
+use App\Models\Fournisseur;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Validation\ValidationException;
@@ -166,16 +172,72 @@ it('donne à l’administrateur le récapitulatif et les relevés de tous les as
     $this->get('/associes/'.utilisateur(Role::Comptable)->id.'/releve')->assertNotFound();
 });
 
-it('n’envoie aucune notification à l’associé', function () {
+it('notifie l’associé de ses seuls apports et remboursements', function () {
     $associe = utilisateur(Role::Associe);
+    $autre = utilisateur(Role::Associe);
     $comptable = utilisateur(Role::Comptable);
+    $compte = compte(soldeInitial: 0);
 
-    $this->actingAs(utilisateur(Role::Administrateur));
-    Encaissement::create([
-        'type' => TypeEncaissement::ApportAssocie, 'associe_id' => $associe->id, 'date_operation' => now(),
-        'compte_id' => compte()->id, 'mode' => ModePaiement::Virement, 'montant' => 1000,
+    $sien = apport($associe, 1000, $compte);
+    apport($autre, 2000, $compte);
+    remboursement($associe, 500, $compte);
+    $sien->delete();
+
+    expect($associe->notifications()->count())->toBe(3)
+        ->and($autre->notifications()->count())->toBe(1)
+        ->and($associe->notifications()->get()->pluck('data.title'))->toContain("Apport {$sien->numero} supprimé");
+
+    $this->actingAs(utilisateur(Role::Caissier));
+    Decaissement::create([
+        'type' => TypeDecaissement::OperationCaisse, 'operateur' => 'Caissier', 'motif' => 'Test',
+        'date_operation' => now(), 'compte_id' => compte(TypeCompte::Caisse)->id, 'mode' => ModePaiement::Especes, 'montant' => 100,
     ]);
 
-    expect($associe->notifications()->count())->toBe(0)
-        ->and($comptable->notifications()->count())->toBe(1);
+    expect($associe->notifications()->count())->toBe(3)
+        ->and($comptable->notifications()->count())->toBeGreaterThan(0);
+});
+
+it('montre à l’associé la trésorerie, les programmes et le résultat, sans les ouvrir au comptable', function () {
+    $associe = utilisateur(Role::Associe);
+    $banque = compte(soldeInitial: 0);
+    apport($associe, 400000, $banque);
+    apport(utilisateur(Role::Associe), 600000, $banque);
+
+    $vente = vente(1000000);
+    Encaissement::create([
+        'type' => TypeEncaissement::VenteAppartement, 'vente_id' => $vente->id, 'date_operation' => now(),
+        'compte_id' => $banque->id, 'mode' => ModePaiement::Virement, 'montant' => 300000,
+    ]);
+    Decaissement::create([
+        'type' => TypeDecaissement::Fournisseur, 'fournisseur_id' => Fournisseur::create(['raison_sociale' => 'Fournisseur test'])->id,
+        'date_operation' => now(), 'compte_id' => $banque->id, 'mode' => ModePaiement::Virement, 'montant' => 100000,
+    ]);
+
+    $this->actingAs($associe);
+
+    expect(ResultatSimplifie::chiffres())->toBe([
+        'ventes' => 300000.0, 'depenses' => 100000.0, 'resultat' => 200000.0, 'quotePart' => 80000.0,
+    ]);
+
+    Livewire::test(SyntheseTresorerie::class)->assertSee('1 200 000,00')->assertSee($banque->nom);
+    Livewire::test(ResultatSimplifie::class)->assertSee('Votre quote-part');
+    Livewire::test(SyntheseProgrammes::class)
+        ->assertCanSeeTableRecords([$vente->appartement->programme])
+        ->assertSee('700 000,00')
+        ->assertDontSee($vente->client->nom.' '.$vente->client->prenom);
+
+    Livewire::test(BandeauAccueil::class)
+        ->assertSee('Espace associé')
+        ->assertSee('Mes investissements')
+        ->assertDontSee('Nouvel encaissement');
+
+    foreach (['/ventes', '/encaissements', '/decaissements', '/comptes'] as $url) {
+        $this->get($url)->assertForbidden();
+    }
+
+    $this->actingAs(utilisateur(Role::Comptable));
+
+    expect(SyntheseTresorerie::canView())->toBeFalse()
+        ->and(SyntheseProgrammes::canView())->toBeFalse()
+        ->and(ResultatSimplifie::canView())->toBeFalse();
 });

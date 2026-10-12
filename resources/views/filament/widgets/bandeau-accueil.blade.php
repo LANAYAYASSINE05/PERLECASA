@@ -19,7 +19,7 @@
                     </h2>
 
                     <p class="mt-3 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">
-                        Service Finance de {{ $agence }} : ventes encaissées, virements reçus, charges fixes, fournisseurs et caisse.
+                        {{ $description }}
                     </p>
                 </div>
 

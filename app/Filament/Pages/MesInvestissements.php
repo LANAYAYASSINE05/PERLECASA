@@ -35,12 +35,12 @@ class MesInvestissements extends Page
 
     protected function getHeaderWidgets(): array
     {
-        return [Widgets\ResumeInvestissements::class];
+        return [Widgets\ResumeInvestissements::class, Widgets\ResultatSimplifie::class, Widgets\SyntheseTresorerie::class];
     }
 
     protected function getFooterWidgets(): array
     {
-        return [Widgets\MesApports::class, Widgets\MesRemboursements::class];
+        return [Widgets\SyntheseProgrammes::class, Widgets\MesApports::class, Widgets\MesRemboursements::class];
     }
 
     public function getHeaderWidgetsColumns(): int|array

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\StatutBonCommande;
 use App\Enums\TypeDecaissement;
+use App\Filament\Pages\MesInvestissements;
 use App\Filament\Resources\BonCommandeResource;
 use App\Filament\Resources\ChargeFixeResource;
 use App\Filament\Resources\DecaissementResource;
@@ -104,6 +105,31 @@ class Alertes
             ->actions([self::voir(BonCommandeResource::getUrl())]));
     }
 
+    /** Prévient l'associé concerné, et lui seul, d'un mouvement sur son apport ou son remboursement. */
+    public static function investissement(Encaissement|Decaissement $m, string $evenement): void
+    {
+        if (! self::$actives || ! auth()->check() || ! $m->associe_id) {
+            return;
+        }
+
+        $nature = $m instanceof Encaissement ? 'Apport' : 'Remboursement';
+        $associeId = $m->associe_id;
+        $notification = Notification::make()
+            ->status($evenement === 'supprimé' ? 'warning' : 'info')
+            ->icon('heroicon-o-chart-pie')
+            ->title("{$nature} {$m->numero} {$evenement}")
+            ->body(self::corps(Montant::mad($m->montant), $m->date_operation?->format('d/m/Y') ?? ''))
+            ->actions([self::voir(MesInvestissements::getUrl())]);
+
+        DB::afterCommit(function () use ($associeId, $notification): void {
+            $associe = User::where('actif', true)->find($associeId);
+
+            if ($associe) {
+                self::notifier($associe, $notification);
+            }
+        });
+    }
+
     /** Rappel quotidien (commande finance:alertes-charges) : retards, et échéances du mois le 1er. */
     public static function charges(): int
     {
@@ -156,20 +182,29 @@ class Alertes
         $diffusion = true;
 
         foreach ($destinataires as $user) {
-            $user->notifyNow($notification->toDatabase());
-
-            if (! $diffusion) {
-                continue;
-            }
-
-            try {
-                $user->notifyNow($notification->toBroadcast());
-                dispatch_sync(new BroadcastEvent(new DatabaseNotificationsSent($user)));
-            } catch (Throwable $e) {
-                $diffusion = false;
-                Log::notice('Notification non diffusée (Reverb injoignable) : '.$e->getMessage());
-            }
+            $diffusion = self::notifier($user, $notification, $diffusion);
         }
+    }
+
+    /** Enregistre en base puis pousse par Reverb ; renvoie false si Reverb est injoignable. */
+    private static function notifier(User $user, Notification $notification, bool $diffusion = true): bool
+    {
+        $user->notifyNow($notification->toDatabase());
+
+        if (! $diffusion) {
+            return false;
+        }
+
+        try {
+            $user->notifyNow($notification->toBroadcast());
+            dispatch_sync(new BroadcastEvent(new DatabaseNotificationsSent($user)));
+        } catch (Throwable $e) {
+            Log::notice('Notification non diffusée (Reverb injoignable) : '.$e->getMessage());
+
+            return false;
+        }
+
+        return true;
     }
 
     private static function corps(string $principal, string $detail): string
