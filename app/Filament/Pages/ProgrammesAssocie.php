@@ -17,6 +17,6 @@ class ProgrammesAssocie extends PageAssocie
 
     protected function getHeaderWidgets(): array
     {
-        return [Widgets\SyntheseProgrammes::class];
+        return [Widgets\SyntheseProgrammes::class, Widgets\ResteAEncaisser::class];
     }
 }

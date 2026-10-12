@@ -2,17 +2,23 @@
 
 namespace App\Services;
 
+use App\Enums\Role;
 use App\Enums\StatutBonCommande;
 use App\Enums\TypeDecaissement;
+use App\Filament\Pages\DemandesAssocie;
+use App\Filament\Pages\DocumentsAssocie;
 use App\Filament\Pages\MesInvestissements;
 use App\Filament\Resources\BonCommandeResource;
 use App\Filament\Resources\ChargeFixeResource;
 use App\Filament\Resources\DecaissementResource;
+use App\Filament\Resources\DemandeAssocieResource;
 use App\Filament\Resources\EncaissementResource;
 use App\Filament\Resources\VenteResource;
 use App\Models\BonCommande;
 use App\Models\ChargeFixe;
 use App\Models\Decaissement;
+use App\Models\DemandeAssocie;
+use App\Models\DocumentAssocie;
 use App\Models\Encaissement;
 use App\Models\User;
 use App\Models\Vente;
@@ -125,6 +131,59 @@ class Alertes
             $associe = User::where('actif', true)->find($associeId);
 
             if ($associe) {
+                self::notifier($associe, $notification);
+            }
+        });
+    }
+
+    public static function documentAssocie(DocumentAssocie $d): void
+    {
+        if (! self::$actives || ! auth()->check()) {
+            return;
+        }
+
+        $notification = Notification::make()
+            ->info()
+            ->icon('heroicon-o-folder-open')
+            ->title('Nouveau document : '.$d->titre)
+            ->body(self::corps($d->categorie->getLabel(), $d->date_document->format('d/m/Y')))
+            ->actions([self::voir(DocumentsAssocie::getUrl())]);
+
+        DB::afterCommit(function () use ($notification): void {
+            $diffusion = true;
+
+            foreach (User::where('actif', true)->where('role', Role::Associe)->get() as $associe) {
+                $diffusion = self::notifier($associe, $notification, $diffusion);
+            }
+        });
+    }
+
+    public static function demandeAssocie(DemandeAssocie $d): void
+    {
+        self::depuisAction('associes', fn () => Notification::make()
+            ->warning()
+            ->icon('heroicon-o-chat-bubble-left-right')
+            ->title("Demande de {$d->associe?->name} : {$d->objet}")
+            ->body(self::corps($d->type->getLabel(), $d->montant ? Montant::mad($d->montant) : ''))
+            ->actions([self::voir(DemandeAssocieResource::getUrl())]));
+    }
+
+    public static function reponseDemande(DemandeAssocie $d): void
+    {
+        if (! self::$actives || ! auth()->check()) {
+            return;
+        }
+
+        $notification = Notification::make()
+            ->status($d->statut->getColor())
+            ->icon('heroicon-o-chat-bubble-left-right')
+            ->title("Votre demande « {$d->objet} » : ".mb_strtolower($d->statut->getLabel()))
+            ->body(e((string) $d->reponse))
+            ->actions([self::voir(DemandesAssocie::getUrl())]);
+        $associeId = $d->associe_id;
+
+        DB::afterCommit(function () use ($associeId, $notification): void {
+            if ($associe = User::where('actif', true)->find($associeId)) {
                 self::notifier($associe, $notification);
             }
         });

@@ -7,12 +7,16 @@ use App\Enums\TypeEncaissement;
 use App\Models\Decaissement;
 use App\Models\Encaissement;
 use App\Support\Montant;
+use App\Support\Periode;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
 /** Ventes encaissées moins dépenses, et la quote-part de l'associé selon sa part des apports. */
 class ResultatSimplifie extends StatsOverviewWidget
 {
+    use InteractsWithPageFilters;
+
     protected static ?int $sort = 3;
 
     protected int|string|array $columnSpan = 'full';
@@ -25,10 +29,11 @@ class ResultatSimplifie extends StatsOverviewWidget
     }
 
     /** @return array{ventes: float, depenses: float, resultat: float, quotePart: float} */
-    public static function chiffres(): array
+    public static function chiffres(?Periode $periode = null): array
     {
-        $ventes = (float) Encaissement::where('type', TypeEncaissement::VenteAppartement)->sum('montant');
-        $depenses = (float) Decaissement::where('type', '!=', TypeDecaissement::RemboursementAssocie)->sum('montant');
+        $periode ??= Periode::depuisFiltres(null);
+        $ventes = (float) $periode->filtrer(Encaissement::where('type', TypeEncaissement::VenteAppartement))->sum('montant');
+        $depenses = (float) $periode->filtrer(Decaissement::where('type', '!=', TypeDecaissement::RemboursementAssocie))->sum('montant');
         $resultat = $ventes - $depenses;
 
         return [
@@ -41,11 +46,12 @@ class ResultatSimplifie extends StatsOverviewWidget
 
     protected function getStats(): array
     {
-        $c = self::chiffres();
+        $periode = Periode::depuisFiltres($this->filters);
+        $c = self::chiffres($periode);
 
         return [
             Stat::make('Ventes encaissées', Montant::mad($c['ventes']))
-                ->description('Appartements vendus, montants reçus')
+                ->description('Montants reçus · '.mb_strtolower($periode->libelle()))
                 ->descriptionIcon('heroicon-m-home-modern')->color('success'),
             Stat::make('Dépenses', Montant::mad($c['depenses']))
                 ->description('Charges fixes, fournisseurs, caisse')

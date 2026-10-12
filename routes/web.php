@@ -2,6 +2,7 @@
 
 use App\Models\BonCommande;
 use App\Models\Decaissement;
+use App\Models\DocumentAssocie;
 use App\Models\Encaissement;
 use App\Models\User;
 use App\Models\Vente;
@@ -44,4 +45,11 @@ Route::middleware('auth')->group(function () {
 
         return PiecesExcel::telecharger(PiecesCommerciales::releveAssocie($user));
     })->name('associes.releve');
+
+    Route::get('/documents-associes/{document}/telecharger', function (DocumentAssocie $document) {
+        abort_unless(auth()->user()->accede('associes') || auth()->user()->accede('investissements'), 403);
+        abort_unless(Storage::disk(DocumentAssocie::DISQUE)->exists($document->fichier), 404);
+
+        return Storage::disk(DocumentAssocie::DISQUE)->download($document->fichier, $document->nomTelechargement());
+    })->name('documents-associes.telecharger');
 });
