@@ -20,6 +20,7 @@ class TableauDeBord extends Dashboard
     {
         return [
             Widgets\BandeauAccueil::class,
+            Widgets\ResumeInvestissements::class,
             Widgets\ChiffresFinance::class,
             Widgets\FluxMensuels::class,
             Widgets\ChargesEnRetard::class,

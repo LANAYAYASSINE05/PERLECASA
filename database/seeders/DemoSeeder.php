@@ -38,7 +38,7 @@ class DemoSeeder extends Seeder
             ['name' => 'Salma Idrissi', 'password' => $motDePasse, 'role' => Role::Comptable, 'actif' => true]);
         $caissier = User::updateOrCreate(['email' => 'caissier@perlacasa.ma'],
             ['name' => 'Youssef Amrani', 'password' => $motDePasse, 'role' => Role::Caissier, 'actif' => true]);
-        User::updateOrCreate(['email' => 'associe@perlacasa.ma'],
+        $associe = User::updateOrCreate(['email' => 'associe@perlacasa.ma'],
             ['name' => 'Nadia Bennani', 'password' => $motDePasse, 'role' => Role::Associe, 'actif' => true]);
 
         auth()->setUser($comptable);
@@ -91,7 +91,6 @@ class DemoSeeder extends Seeder
         $virements = [
             [1, 8, 'Étude Me Bennani, notaire', 'Restitution de consignation', 45000, $banque],
             [2, 20, 'Wafa Assurance', 'Indemnité sinistre chantier', 18500, $travaux],
-            [4, 2, 'Associé — M. Lahlou', 'Apport en compte courant d’associé', 300000, $travaux],
             [5, 10, 'Banque Populaire', 'Déblocage crédit promoteur', 500000, $travaux],
         ];
 
@@ -107,6 +106,22 @@ class DemoSeeder extends Seeder
                 'libelle' => $libelle,
             ]);
         }
+
+        // Sans utilisateur connecté : en application, seul l'administrateur saisit un apport.
+        auth()->forgetUser();
+
+        Encaissement::create([
+            'type' => TypeEncaissement::ApportAssocie,
+            'associe_id' => $associe->id,
+            'date_operation' => $debut->copy()->addMonths(4)->addDays(2)->min(now()),
+            'compte_id' => $travaux->id,
+            'mode' => ModePaiement::Virement,
+            'reference' => 'VIR '.random_int(100000, 999999),
+            'montant' => 300000,
+            'libelle' => 'Apport en compte courant d’associé',
+        ]);
+
+        auth()->setUser($comptable);
 
         $fournisseurs = collect([
             ['SCI Anfa Patrimoine', '001523698000045'],

@@ -22,14 +22,20 @@ it('ouvre les écrans selon le rôle', function (Role $role, string $url, int $s
     'caissier : encaissements interdits' => [Role::Caissier, '/encaissements', 403],
     'caissier : charges fixes interdites' => [Role::Caissier, '/charges-fixes', 403],
     'caissier : comptes interdits' => [Role::Caissier, '/comptes', 403],
+    'comptable : associés interdits' => [Role::Comptable, '/associes', 403],
+    'comptable : mes investissements interdits' => [Role::Comptable, '/mes-investissements', 403],
     'associé : tableau de bord' => [Role::Associe, '/', 200],
-    'associé : encaissements' => [Role::Associe, '/encaissements', 200],
+    'associé : mes investissements' => [Role::Associe, '/mes-investissements', 200],
+    'associé : encaissements interdits' => [Role::Associe, '/encaissements', 403],
     'associé : ventes interdites' => [Role::Associe, '/ventes', 403],
     'associé : décaissements interdits' => [Role::Associe, '/decaissements', 403],
     'associé : comptes interdits' => [Role::Associe, '/comptes', 403],
     'associé : clients interdits' => [Role::Associe, '/clients', 403],
     'associé : utilisateurs interdits' => [Role::Associe, '/utilisateurs', 403],
+    'associé : récapitulatif des associés interdit' => [Role::Associe, '/associes', 403],
     'administrateur : utilisateurs' => [Role::Administrateur, '/utilisateurs', 200],
+    'administrateur : associés' => [Role::Administrateur, '/associes', 200],
+    'administrateur : mes investissements interdits' => [Role::Administrateur, '/mes-investissements', 403],
 ]);
 
 it('refuse l’accès à un compte désactivé', function () {

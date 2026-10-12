@@ -70,9 +70,16 @@ class DecaissementResource extends Resource
 
     public static function form(Form $form): Form
     {
+        $types = collect(TypeDecaissement::cases())
+            ->reject(fn (TypeDecaissement $t) => $t === TypeDecaissement::RemboursementAssocie && ! auth()->user()?->estAdministrateur());
+
         return $form->schema([
             Forms\Components\ToggleButtons::make('type')->label('Nature de la sortie')
-                ->options(TypeDecaissement::class)->required()->inline()->live()
+                ->options($types->mapWithKeys(fn (TypeDecaissement $t) => [$t->value => $t->getLabel()]))
+                ->icons($types->mapWithKeys(fn (TypeDecaissement $t) => [$t->value => $t->getIcon()]))
+                ->colors($types->mapWithKeys(fn (TypeDecaissement $t) => [$t->value => $t->getColor()]))
+                ->required()->inline()->live()
+                ->rule(RegleFinance::decaissement('type', self::donnees(...)))
                 ->default(fn () => self::caissier() ? TypeDecaissement::OperationCaisse->value : TypeDecaissement::ChargeFixe->value)
                 ->disabled(fn () => self::caissier())->dehydrated()
                 ->afterStateUpdated(function (Set $set, Get $get) {
@@ -81,6 +88,13 @@ class DecaissementResource extends Resource
                         $set('mode', ModePaiement::Especes->value);
                     }
                 })
+                ->columnSpanFull(),
+
+            Forms\Components\Select::make('associe_id')->label('Associé')
+                ->options(fn () => EncaissementResource::associes())
+                ->searchable()->required()
+                ->visible(fn (Get $get) => self::type($get) === TypeDecaissement::RemboursementAssocie)
+                ->rule(RegleFinance::decaissement('associe_id', self::donnees(...)))
                 ->columnSpanFull(),
 
             Forms\Components\Select::make('charge_fixe_id')->label('Charge fixe')
@@ -146,7 +160,7 @@ class DecaissementResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($query) => $query->with(['chargeFixe', 'fournisseur', 'compte']))
+            ->modifyQueryUsing(fn ($query) => $query->with(['chargeFixe', 'fournisseur', 'compte', 'associe']))
             ->defaultSort('date_operation', 'desc')
             ->recordClasses(fn (Decaissement $d) => $d->type === TypeDecaissement::OperationCaisse && ! $d->justifie ? 'pc-fiche-alerte' : null)
             ->columns([
@@ -164,7 +178,8 @@ class DecaissementResource extends Resource
                         ->orWhere('motif', 'like', "%{$search}%")
                         ->orWhere('reference_facture', 'like', "%{$search}%")
                         ->orWhereHas('fournisseur', fn ($q) => $q->where('raison_sociale', 'like', "%{$search}%"))
-                        ->orWhereHas('chargeFixe', fn ($q) => $q->where('libelle', 'like', "%{$search}%"))),
+                        ->orWhereHas('chargeFixe', fn ($q) => $q->where('libelle', 'like', "%{$search}%"))
+                        ->orWhereHas('associe', fn ($q) => $q->where('name', 'like', "%{$search}%"))),
                 Tables\Columns\TextColumn::make('compte.nom')->visibleFrom('lg')->label('Compte')->toggleable(),
                 Tables\Columns\TextColumn::make('mode')->visibleFrom('lg')->badge()->color('gray')->toggleable(),
                 Tables\Columns\TextColumn::make('montant')->alignEnd()->sortable()->weight('bold')->color('danger')
@@ -220,6 +235,7 @@ class DecaissementResource extends Resource
     {
         return [[
             'type' => self::type($get)?->value,
+            'associe_id' => $get('associe_id'),
             'charge_fixe_id' => $get('charge_fixe_id'),
             'periode' => $get('periode'),
             'fournisseur_id' => $get('fournisseur_id'),

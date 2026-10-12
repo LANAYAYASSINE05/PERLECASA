@@ -20,9 +20,7 @@ class ChiffresFinance extends StatsOverviewWidget
 
     public static function canView(): bool
     {
-        $user = auth()->user();
-
-        return $user && $user->accede('encaissements') && ! $user->estAssocie();
+        return (bool) auth()->user()?->accede('encaissements');
     }
 
     protected function getStats(): array

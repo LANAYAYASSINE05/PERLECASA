@@ -11,6 +11,7 @@ enum TypeDecaissement: string implements HasColor, HasIcon, HasLabel
     case ChargeFixe = 'charge_fixe';
     case Fournisseur = 'fournisseur';
     case OperationCaisse = 'operation_caisse';
+    case RemboursementAssocie = 'remboursement_associe';
 
     public function getLabel(): string
     {
@@ -18,6 +19,7 @@ enum TypeDecaissement: string implements HasColor, HasIcon, HasLabel
             self::ChargeFixe => 'Charge fixe',
             self::Fournisseur => 'Fournisseur',
             self::OperationCaisse => 'Opération de caisse',
+            self::RemboursementAssocie => 'Remboursement associé',
         };
     }
 
@@ -27,6 +29,7 @@ enum TypeDecaissement: string implements HasColor, HasIcon, HasLabel
             self::ChargeFixe => 'primary',
             self::Fournisseur => 'info',
             self::OperationCaisse => 'warning',
+            self::RemboursementAssocie => 'gray',
         };
     }
 
@@ -36,6 +39,7 @@ enum TypeDecaissement: string implements HasColor, HasIcon, HasLabel
             self::ChargeFixe => 'heroicon-m-calendar-days',
             self::Fournisseur => 'heroicon-m-truck',
             self::OperationCaisse => 'heroicon-m-banknotes',
+            self::RemboursementAssocie => 'heroicon-m-user-group',
         };
     }
 }

@@ -18,7 +18,7 @@ class Decaissement extends Model
     public const DISQUE = 'local';
 
     protected $fillable = [
-        'type', 'date_operation', 'charge_fixe_id', 'periode', 'fournisseur_id', 'reference_facture',
+        'type', 'associe_id', 'date_operation', 'charge_fixe_id', 'periode', 'fournisseur_id', 'reference_facture',
         'operateur', 'beneficiaire', 'compte_id', 'mode', 'montant', 'motif', 'piece_justificative',
     ];
 
@@ -49,6 +49,10 @@ class Decaissement extends Model
             if ($d->type !== TypeDecaissement::OperationCaisse) {
                 $d->operateur = null;
                 $d->beneficiaire = null;
+            }
+
+            if ($d->type !== TypeDecaissement::RemboursementAssocie) {
+                $d->associe_id = null;
             }
 
             $d->justifie = filled($d->piece_justificative);
@@ -95,6 +99,11 @@ class Decaissement extends Model
         return $this->belongsTo(User::class, 'cree_par');
     }
 
+    public function associe(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'associe_id');
+    }
+
     public function scopeCaisseNonJustifiee(Builder $query): Builder
     {
         return $query->where('type', TypeDecaissement::OperationCaisse)->where('justifie', false);
@@ -106,6 +115,7 @@ class Decaissement extends Model
             TypeDecaissement::ChargeFixe => (string) $this->chargeFixe?->libelle.($this->periode ? " · {$this->periode}" : ''),
             TypeDecaissement::Fournisseur => (string) $this->fournisseur?->raison_sociale,
             TypeDecaissement::OperationCaisse => trim("{$this->operateur} · {$this->motif}", ' ·'),
+            TypeDecaissement::RemboursementAssocie => (string) $this->associe?->name,
         };
     }
 }

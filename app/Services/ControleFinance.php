@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
+use App\Enums\Role;
 use App\Enums\TypeCompte;
 use App\Enums\TypeDecaissement;
 use App\Enums\TypeEncaissement;
 use App\Models\Compte;
 use App\Models\Decaissement;
+use App\Models\User;
 use App\Models\Vente;
 use App\Support\Montant;
 use BackedEnum;
@@ -45,6 +47,10 @@ class ControleFinance
 
         if ($type === TypeEncaissement::VirementRecu && blank($d['emetteur'] ?? null)) {
             $erreurs['emetteur'] = 'Indiquez qui a fait le virement.';
+        }
+
+        if ($type === TypeEncaissement::ApportAssocie) {
+            $erreurs += self::associe($d);
         }
 
         return $erreurs;
@@ -94,10 +100,35 @@ class ControleFinance
             }
         }
 
+        if ($type === TypeDecaissement::RemboursementAssocie) {
+            $erreurs += self::associe($d);
+        }
+
         if (! $compte) {
             $erreurs['compte_id'] ??= 'Choisissez le compte qui paie.';
         } elseif ($montant > 0 && $montant > $compte->solde($ignorer) + 0.001) {
             $erreurs['montant'] ??= "Solde insuffisant sur « {$compte->nom} » (".self::mad($compte->solde($ignorer)).' disponibles).';
+        }
+
+        return $erreurs;
+    }
+
+    /**
+     * Apports et remboursements : un associé désigné, et saisie réservée à l'administrateur.
+     *
+     * @return array<string, string>
+     */
+    private static function associe(array $d): array
+    {
+        $erreurs = [];
+        $user = auth()->user();
+
+        if ($user && ! $user->estAdministrateur()) {
+            $erreurs['type'] = 'Seul l’administrateur enregistre les apports et remboursements des associés.';
+        }
+
+        if (! User::whereKey($d['associe_id'] ?? null)->where('role', Role::Associe)->exists()) {
+            $erreurs['associe_id'] = 'Choisissez l’associé concerné.';
         }
 
         return $erreurs;

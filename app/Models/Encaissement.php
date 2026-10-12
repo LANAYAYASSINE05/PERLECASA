@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 class Encaissement extends Model
 {
     protected $fillable = [
-        'type', 'date_operation', 'vente_id', 'emetteur', 'compte_id', 'mode', 'reference', 'montant', 'libelle',
+        'type', 'associe_id', 'date_operation', 'vente_id', 'emetteur', 'compte_id', 'mode', 'reference', 'montant', 'libelle',
     ];
 
     protected function casts(): array
@@ -30,8 +30,12 @@ class Encaissement extends Model
     protected static function booted(): void
     {
         static::saving(function (Encaissement $e): void {
-            if ($e->type === TypeEncaissement::VirementRecu) {
+            if ($e->type !== TypeEncaissement::VenteAppartement) {
                 $e->vente_id = null;
+            }
+
+            if ($e->type !== TypeEncaissement::ApportAssocie) {
+                $e->associe_id = null;
             }
 
             $erreurs = ControleFinance::encaissement($e->getAttributes(), $e->getKey());
@@ -64,10 +68,17 @@ class Encaissement extends Model
         return $this->belongsTo(User::class, 'cree_par');
     }
 
+    public function associe(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'associe_id');
+    }
+
     public function provenance(): string
     {
-        return $this->type === TypeEncaissement::VenteAppartement
-            ? (string) $this->vente?->libelle()
-            : (string) $this->emetteur;
+        return match ($this->type) {
+            TypeEncaissement::VenteAppartement => (string) $this->vente?->libelle(),
+            TypeEncaissement::ApportAssocie => (string) $this->associe?->name,
+            default => (string) $this->emetteur,
+        };
     }
 }

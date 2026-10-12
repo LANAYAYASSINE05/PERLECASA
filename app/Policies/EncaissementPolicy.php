@@ -2,32 +2,36 @@
 
 namespace App\Policies;
 
+use App\Enums\TypeEncaissement;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
-/** L'associé ne voit que ses propres encaissements, et ne modifie ni ne supprime rien une fois saisi. */
+/** Un associé ne voit que ses propres apports ; seuls les administrateurs modifient ou suppriment un apport. */
 class EncaissementPolicy extends PolitiqueParEcran
 {
     protected string $ecran = 'encaissements';
 
     public function view(User $user, Model $model): bool
     {
-        return parent::view($user, $model)
-            && (! $user->estAssocie() || (int) $model->cree_par === (int) $user->getKey());
+        if ($user->estAssocie()) {
+            return $model->type === TypeEncaissement::ApportAssocie && (int) $model->associe_id === (int) $user->getKey();
+        }
+
+        return parent::view($user, $model);
     }
 
     public function update(User $user, Model $model): bool
     {
-        return parent::update($user, $model) && ! $user->estAssocie();
+        return parent::update($user, $model) && $this->modifiable($user, $model);
     }
 
     public function delete(User $user, Model $model): bool
     {
-        return parent::delete($user, $model) && ! $user->estAssocie();
+        return parent::delete($user, $model) && $this->modifiable($user, $model);
     }
 
-    public function deleteAny(User $user): bool
+    private function modifiable(User $user, Model $model): bool
     {
-        return parent::deleteAny($user) && ! $user->estAssocie();
+        return $model->type !== TypeEncaissement::ApportAssocie || $user->estAdministrateur();
     }
 }

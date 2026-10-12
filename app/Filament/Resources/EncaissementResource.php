@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\ModePaiement;
+use App\Enums\Role;
 use App\Enums\TypeCompte;
 use App\Enums\TypeEncaissement;
 use App\Filament\Concerns\AccesParEcran;
@@ -13,6 +14,7 @@ use App\Filament\Support\ImpressionPiece;
 use App\Filament\Support\RegleFinance;
 use App\Models\Compte;
 use App\Models\Encaissement;
+use App\Models\User;
 use App\Models\Vente;
 use App\Support\Montant;
 use Filament\Forms;
@@ -23,7 +25,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class EncaissementResource extends Resource
 {
@@ -43,18 +44,25 @@ class EncaissementResource extends Resource
 
     protected static ?string $navigationLabel = 'Encaissements';
 
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->when(auth()->user()?->estAssocie(), fn ($q) => $q->where('cree_par', auth()->id()));
-    }
-
     public static function form(Form $form): Form
     {
+        $types = collect(TypeEncaissement::cases())
+            ->reject(fn (TypeEncaissement $t) => $t === TypeEncaissement::ApportAssocie && ! auth()->user()?->estAdministrateur());
+
         return $form->schema([
             Forms\Components\ToggleButtons::make('type')->label('Origine de l’argent')
-                ->options(TypeEncaissement::class)->required()->inline()->live()
+                ->options($types->mapWithKeys(fn (TypeEncaissement $t) => [$t->value => $t->getLabel()]))
+                ->icons($types->mapWithKeys(fn (TypeEncaissement $t) => [$t->value => $t->getIcon()]))
+                ->colors($types->mapWithKeys(fn (TypeEncaissement $t) => [$t->value => $t->getColor()]))
+                ->required()->inline()->live()
                 ->default(TypeEncaissement::VenteAppartement->value)
+                ->rule(RegleFinance::encaissement('type', self::donnees(...)))
+                ->columnSpanFull(),
+            Forms\Components\Select::make('associe_id')->label('Associé')
+                ->options(fn () => self::associes())
+                ->searchable()->required()
+                ->visible(fn (Get $get) => self::type($get) === TypeEncaissement::ApportAssocie)
+                ->rule(RegleFinance::encaissement('associe_id', self::donnees(...)))
                 ->columnSpanFull(),
             Forms\Components\Select::make('vente_id')->label('Vente d’appartement')
                 ->options(fn (?Encaissement $record) => self::ventesAEncaisser($record?->vente_id))
@@ -102,7 +110,7 @@ class EncaissementResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($query) => $query->with(['vente.appartement.programme', 'vente.client', 'compte']))
+            ->modifyQueryUsing(fn ($query) => $query->with(['vente.appartement.programme', 'vente.client', 'compte', 'associe']))
             ->defaultSort('date_operation', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('numero')->label('N°')->searchable()->weight('bold'),
@@ -113,6 +121,7 @@ class EncaissementResource extends Resource
                     ->description(fn (Encaissement $e) => $e->libelle)
                     ->searchable(query: fn ($query, string $search) => $query
                         ->where('emetteur', 'like', "%{$search}%")
+                        ->orWhereHas('associe', fn ($q) => $q->where('name', 'like', "%{$search}%"))
                         ->orWhereHas('vente', fn ($q) => $q->where('numero', 'like', "%{$search}%")
                             ->orWhereHas('client', fn ($c) => $c->where('nom', 'like', "%{$search}%"))
                             ->orWhereHas('appartement', fn ($a) => $a->where('reference', 'like', "%{$search}%")))),
@@ -149,6 +158,12 @@ class EncaissementResource extends Resource
             ->all();
     }
 
+    /** @return array<int, string> associés actifs */
+    public static function associes(): array
+    {
+        return User::where('role', Role::Associe)->where('actif', true)->orderBy('name')->pluck('name', 'id')->all();
+    }
+
     private static function type(Get $get): ?TypeEncaissement
     {
         $type = $get('type');
@@ -160,6 +175,7 @@ class EncaissementResource extends Resource
     {
         return [[
             'type' => self::type($get)?->value,
+            'associe_id' => $get('associe_id'),
             'vente_id' => $get('vente_id'),
             'emetteur' => $get('emetteur'),
             'compte_id' => $get('compte_id'),

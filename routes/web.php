@@ -3,6 +3,7 @@
 use App\Models\BonCommande;
 use App\Models\Decaissement;
 use App\Models\Encaissement;
+use App\Models\User;
 use App\Models\Vente;
 use App\Services\PiecesCommerciales;
 use App\Services\PiecesExcel;
@@ -36,4 +37,11 @@ Route::middleware('auth')->group(function () {
 
         return PiecesExcel::telecharger(PiecesCommerciales::bonCommande($bonCommande));
     })->name('bons-commande.imprimer');
+
+    Route::get('/associes/{user}/releve', function (User $user) {
+        abort_unless($user->estAssocie(), 404);
+        abort_unless(auth()->user()->accede('associes') || auth()->user()->is($user), 403);
+
+        return PiecesExcel::telecharger(PiecesCommerciales::releveAssocie($user));
+    })->name('associes.releve');
 });

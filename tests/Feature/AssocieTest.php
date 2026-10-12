@@ -2,104 +2,180 @@
 
 use App\Enums\ModePaiement;
 use App\Enums\Role;
+use App\Enums\TypeDecaissement;
 use App\Enums\TypeEncaissement;
-use App\Filament\Resources\CompteResource;
+use App\Filament\Pages\Associes;
+use App\Filament\Resources\DecaissementResource\Pages\ManageDecaissements;
 use App\Filament\Resources\EncaissementResource\Pages\ManageEncaissements;
-use App\Filament\Widgets\BandeauAccueil;
-use App\Filament\Widgets\ChiffresFinance;
-use App\Filament\Widgets\FluxMensuels;
+use App\Filament\Widgets\MesApports;
+use App\Filament\Widgets\MesRemboursements;
+use App\Filament\Widgets\ResumeInvestissements;
+use App\Models\Compte;
+use App\Models\Decaissement;
 use App\Models\Encaissement;
 use App\Models\User;
+use Filament\Facades\Filament;
+use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 
-function encaissementDe(User $auteur, float $montant = 1000): Encaissement
+beforeEach(fn () => Filament::setCurrentPanel(Filament::getPanel('app')));
+
+function apport(User $associe, float $montant = 100000, ?Compte $compte = null): Encaissement
 {
-    test()->actingAs($auteur);
+    test()->actingAs(utilisateur(Role::Administrateur));
 
     return Encaissement::create([
-        'type' => TypeEncaissement::VirementRecu, 'emetteur' => 'Client', 'date_operation' => now(),
-        'compte_id' => compte()->id, 'mode' => ModePaiement::Virement, 'montant' => $montant,
+        'type' => TypeEncaissement::ApportAssocie, 'associe_id' => $associe->id, 'date_operation' => now(),
+        'compte_id' => ($compte ?? compte())->id, 'mode' => ModePaiement::Virement, 'montant' => $montant,
     ]);
 }
 
-it('laisse l’associé saisir un encaissement sur une vente', function () {
-    $agent = utilisateur(Role::Associe);
-    $vente = vente(500000);
-    $this->actingAs($agent);
+function remboursement(User $associe, float $montant, Compte $compte): Decaissement
+{
+    test()->actingAs(utilisateur(Role::Administrateur));
+
+    return Decaissement::create([
+        'type' => TypeDecaissement::RemboursementAssocie, 'associe_id' => $associe->id, 'date_operation' => now(),
+        'compte_id' => $compte->id, 'mode' => ModePaiement::Virement, 'montant' => $montant,
+    ]);
+}
+
+it('laisse l’administrateur enregistrer un apport et un remboursement qui font bouger le compte', function () {
+    $associe = utilisateur(Role::Associe);
+    $compte = compte(soldeInitial: 0);
+    $this->actingAs(utilisateur(Role::Administrateur));
 
     Livewire::test(ManageEncaissements::class)
         ->callAction('create', [
-            'type' => TypeEncaissement::VenteAppartement->value,
-            'vente_id' => $vente->id,
+            'type' => TypeEncaissement::ApportAssocie->value,
+            'associe_id' => $associe->id,
             'date_operation' => now()->toDateString(),
-            'compte_id' => compte()->id,
-            'mode' => ModePaiement::Cheque->value,
-            'montant' => 100000,
+            'compte_id' => $compte->id,
+            'mode' => ModePaiement::Virement->value,
+            'montant' => 200000,
         ])
         ->assertHasNoActionErrors();
 
-    expect(Encaissement::sole())
-        ->cree_par->toBe($agent->id)
-        ->and((float) Encaissement::sole()->montant)->toBe(100000.0);
+    Livewire::test(ManageDecaissements::class)
+        ->callAction('create', [
+            'type' => TypeDecaissement::RemboursementAssocie->value,
+            'associe_id' => $associe->id,
+            'date_operation' => now()->toDateString(),
+            'compte_id' => $compte->id,
+            'mode' => ModePaiement::Virement->value,
+            'montant' => 50000,
+        ])
+        ->assertHasNoActionErrors();
+
+    expect($compte->solde())->toBe(150000.0)
+        ->and($associe->totalApporte())->toBe(200000.0)
+        ->and($associe->totalRembourse())->toBe(50000.0)
+        ->and($associe->netInvesti())->toBe(150000.0)
+        ->and($associe->partDuCapital())->toBe(100.0);
 });
 
-it('ne montre à l’associé que ses propres encaissements et reçus', function () {
-    $autre = encaissementDe(utilisateur(Role::Comptable));
-    $agent = utilisateur(Role::Associe);
-    $sien = encaissementDe($agent);
-
-    expect($agent->can('view', $sien))->toBeTrue()
-        ->and($agent->can('view', $autre))->toBeFalse();
+it('exige un associé pour un apport', function () {
+    $this->actingAs(utilisateur(Role::Administrateur));
 
     Livewire::test(ManageEncaissements::class)
-        ->assertCanSeeTableRecords([$sien])
-        ->assertCanNotSeeTableRecords([$autre]);
+        ->callAction('create', [
+            'type' => TypeEncaissement::ApportAssocie->value,
+            'associe_id' => utilisateur(Role::Comptable)->id,
+            'date_operation' => now()->toDateString(),
+            'compte_id' => compte()->id,
+            'mode' => ModePaiement::Virement->value,
+            'montant' => 1000,
+        ])
+        ->assertHasActionErrors(['associe_id']);
 
-    $this->get("/encaissements/{$sien->id}/recu")->assertOk();
-    $this->get("/encaissements/{$autre->id}/recu")->assertForbidden();
+    expect(Encaissement::count())->toBe(0);
 });
 
-it('interdit à l’associé de modifier ou supprimer, même par appel Livewire direct', function () {
-    $agent = utilisateur(Role::Associe);
-    $sien = encaissementDe($agent, 1000);
+it('interdit au comptable de créer, modifier ou supprimer un apport', function () {
+    $associe = utilisateur(Role::Associe);
+    $apport = apport($associe, 1000);
+    $comptable = utilisateur(Role::Comptable);
+    $this->actingAs($comptable);
 
-    expect($agent->can('update', $sien))->toBeFalse()
-        ->and($agent->can('delete', $sien))->toBeFalse()
-        ->and($agent->can('deleteAny', Encaissement::class))->toBeFalse();
+    expect($comptable->can('view', $apport))->toBeTrue()
+        ->and($comptable->can('update', $apport))->toBeFalse()
+        ->and($comptable->can('delete', $apport))->toBeFalse();
 
     Livewire::test(ManageEncaissements::class)
-        ->assertTableActionHidden('edit', $sien)
-        ->assertTableActionHidden('delete', $sien)
-        ->call('mountTableAction', 'edit', (string) $sien->id)
-        ->set('mountedTableActionsData.0.montant', 1)
-        ->call('callMountedTableAction')
-        ->call('mountTableAction', 'delete', (string) $sien->id)
+        ->assertCanSeeTableRecords([$apport])
+        ->assertTableActionHidden('edit', $apport)
+        ->assertTableActionHidden('delete', $apport)
+        ->call('mountTableAction', 'delete', (string) $apport->id)
         ->call('callMountedTableAction');
 
-    expect($sien->fresh())->not->toBeNull()
-        ->and((float) $sien->fresh()->montant)->toBe(1000.0);
+    expect($apport->fresh())->not->toBeNull();
+
+    expect(fn () => Encaissement::create([
+        'type' => TypeEncaissement::ApportAssocie, 'associe_id' => $associe->id, 'date_operation' => now(),
+        'compte_id' => compte()->id, 'mode' => ModePaiement::Virement, 'montant' => 500,
+    ]))->toThrow(ValidationException::class);
+
+    expect(fn () => Decaissement::create([
+        'type' => TypeDecaissement::RemboursementAssocie, 'associe_id' => $associe->id, 'date_operation' => now(),
+        'compte_id' => compte()->id, 'mode' => ModePaiement::Virement, 'montant' => 500,
+    ]))->toThrow(ValidationException::class);
 });
 
-it('cache à l’associé la trésorerie, les soldes et la caisse', function () {
-    $compte = compte(soldeInitial: 123456);
-    $this->actingAs(utilisateur(Role::Associe));
+it('montre à l’associé ses seuls investissements', function () {
+    $associe = utilisateur(Role::Associe);
+    $autre = utilisateur(Role::Associe);
+    $compte = compte(soldeInitial: 0);
+    $sien = apport($associe, 300000, $compte);
+    $rembourse = remboursement($associe, 100000, $compte);
+    $etranger = apport($autre, 600000, $compte);
 
-    expect(ChiffresFinance::canView())->toBeFalse()
-        ->and(FluxMensuels::canView())->toBeFalse()
-        ->and(CompteResource::options()[$compte->id])->toBe($compte->nom);
+    $this->actingAs($associe);
 
-    Livewire::test(BandeauAccueil::class)
-        ->assertSee('Nouvel encaissement')
-        ->assertDontSee('Caisse à justifier')
-        ->assertDontSee('Nouveau décaissement');
+    expect($associe->netInvesti())->toBe(200000.0)
+        ->and($associe->partDuCapital())->toBe(25.0);
+
+    $this->get('/mes-investissements')->assertOk()->assertSee('Mes investissements');
+
+    Livewire::test(ResumeInvestissements::class)->assertSee('25,00 %');
+    Livewire::test(MesApports::class)
+        ->assertCanSeeTableRecords([$sien])
+        ->assertCanNotSeeTableRecords([$etranger]);
+    Livewire::test(MesRemboursements::class)->assertCanSeeTableRecords([$rembourse]);
+
+    $this->get("/encaissements/{$sien->id}/recu")->assertOk();
+    $this->get("/encaissements/{$etranger->id}/recu")->assertForbidden();
+    $this->get("/associes/{$associe->id}/releve")->assertOk();
+    $this->get("/associes/{$autre->id}/releve")->assertForbidden();
 });
 
-it('n’envoie pas les alertes des autres encaissements à l’associé', function () {
-    $agent = utilisateur(Role::Associe);
+it('ferme à l’associé les écrans métier et le récapitulatif', function (string $url) {
+    $this->actingAs(utilisateur(Role::Associe))->get($url)->assertForbidden();
+})->with(['/ventes', '/encaissements', '/decaissements', '/comptes', '/utilisateurs', '/associes']);
+
+it('donne à l’administrateur le récapitulatif et les relevés de tous les associés', function () {
+    $associe = utilisateur(Role::Associe);
+    apport($associe, 400000);
+
+    $this->actingAs(utilisateur(Role::Administrateur));
+
+    Livewire::test(Associes::class)
+        ->assertCanSeeTableRecords([$associe])
+        ->assertSee('100,00 %');
+
+    $this->get("/associes/{$associe->id}/releve")->assertOk();
+    $this->get('/associes/'.utilisateur(Role::Comptable)->id.'/releve')->assertNotFound();
+});
+
+it('n’envoie aucune notification à l’associé', function () {
+    $associe = utilisateur(Role::Associe);
     $comptable = utilisateur(Role::Comptable);
 
-    encaissementDe(utilisateur(Role::Administrateur));
+    $this->actingAs(utilisateur(Role::Administrateur));
+    Encaissement::create([
+        'type' => TypeEncaissement::ApportAssocie, 'associe_id' => $associe->id, 'date_operation' => now(),
+        'compte_id' => compte()->id, 'mode' => ModePaiement::Virement, 'montant' => 1000,
+    ]);
 
-    expect($agent->notifications()->count())->toBe(0)
+    expect($associe->notifications()->count())->toBe(0)
         ->and($comptable->notifications()->count())->toBe(1);
 });

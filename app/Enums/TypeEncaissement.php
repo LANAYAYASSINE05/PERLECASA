@@ -10,12 +10,14 @@ enum TypeEncaissement: string implements HasColor, HasIcon, HasLabel
 {
     case VenteAppartement = 'vente_appartement';
     case VirementRecu = 'virement_recu';
+    case ApportAssocie = 'apport_associe';
 
     public function getLabel(): string
     {
         return match ($this) {
             self::VenteAppartement => "Vente d'appartement",
             self::VirementRecu => 'Virement reçu',
+            self::ApportAssocie => 'Apport associé',
         };
     }
 
@@ -24,6 +26,7 @@ enum TypeEncaissement: string implements HasColor, HasIcon, HasLabel
         return match ($this) {
             self::VenteAppartement => 'success',
             self::VirementRecu => 'info',
+            self::ApportAssocie => 'warning',
         };
     }
 
@@ -32,6 +35,7 @@ enum TypeEncaissement: string implements HasColor, HasIcon, HasLabel
         return match ($this) {
             self::VenteAppartement => 'heroicon-m-home-modern',
             self::VirementRecu => 'heroicon-m-arrows-right-left',
+            self::ApportAssocie => 'heroicon-m-user-group',
         };
     }
 }

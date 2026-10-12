@@ -7,8 +7,10 @@ use App\Enums\TypeCompte;
 use App\Enums\TypeEncaissement;
 use App\Models\BonCommande;
 use App\Models\Compte;
+use App\Models\Decaissement;
 use App\Models\Encaissement;
 use App\Models\LigneBonCommande;
+use App\Models\User;
 use App\Models\Vente;
 use App\Support\MontantEnLettres;
 
@@ -76,7 +78,7 @@ class PiecesCommerciales
 
     public static function recu(Encaissement $encaissement): array
     {
-        $encaissement->loadMissing('vente.client', 'vente.appartement', 'compte');
+        $encaissement->loadMissing('vente.client', 'vente.appartement', 'compte', 'associe');
         $vente = $encaissement->vente;
         $client = $vente?->client;
         $montant = (float) $encaissement->montant;
@@ -91,11 +93,11 @@ class PiecesCommerciales
                     $client->adresse,
                 ]),
             ]
-            : ['code' => 'Donneur d\'ordre', 'nom' => (string) $encaissement->emetteur, 'lignes' => []];
+            : ['code' => 'Donneur d\'ordre', 'nom' => $encaissement->provenance(), 'lignes' => []];
 
         $description = $encaissement->type === TypeEncaissement::VenteAppartement
             ? "Règlement de l'appartement {$vente?->appartement?->reference} · vente {$vente?->numero}"
-            : ($encaissement->libelle ?: 'Virement reçu');
+            : ($encaissement->libelle ?: $encaissement->type->getLabel());
 
         $conditions = ['Mode de paiement' => $encaissement->mode?->getLabel()];
 
@@ -122,7 +124,7 @@ class PiecesCommerciales
             'sections' => [[
                 'titre' => $encaissement->type === TypeEncaissement::VenteAppartement
                     ? "Contrat de vente N° {$vente?->numero}"
-                    : 'Virement reçu le '.$encaissement->date_operation->format('d/m/Y'),
+                    : $encaissement->type->getLabel().' le '.$encaissement->date_operation->format('d/m/Y'),
                 'lignes' => [[
                     (string) $encaissement->reference,
                     $description,
@@ -187,6 +189,61 @@ class PiecesCommerciales
             ]),
             'banque' => [],
             'signatures' => ['Le fournisseur', self::raisonSociale()],
+        ];
+    }
+
+    public static function releveAssocie(User $associe): array
+    {
+        $apporte = $associe->totalApporte();
+        $rembourse = $associe->totalRembourse();
+        $net = $apporte - $rembourse;
+        $ligne = fn (Encaissement|Decaissement $m, float $signe) => [
+            $m->numero,
+            trim($m->type->getLabel().' · '.($m->libelle ?? $m->motif ?? $m->compte?->nom), ' ·'),
+            $m->date_operation->format('d/m/Y'),
+            self::valeur($signe * (float) $m->montant),
+        ];
+
+        return [
+            'titre' => 'Relevé associé',
+            'numero' => $associe->id.'-'.now()->format('Ymd'),
+            'infos' => [
+                'Date' => now()->format('d/m/Y'),
+                'Part du capital' => number_format($associe->partDuCapital(), 2, ',', ' ').' %',
+            ],
+            'tiers' => [
+                'code' => 'Code Associé : '.$associe->id,
+                'nom' => $associe->name,
+                'lignes' => [$associe->email],
+            ],
+            'colonnes' => [
+                ['N°', 'gauche', 16],
+                ['Nature', 'gauche', 52],
+                ['Date', 'centre', 14],
+                ['Montant', 'droite', 18],
+            ],
+            'sections' => [
+                [
+                    'titre' => 'Apports',
+                    'lignes' => $associe->apports()->with('compte')->orderBy('date_operation')->get()
+                        ->map(fn (Encaissement $e) => $ligne($e, 1))->all(),
+                ],
+                [
+                    'titre' => 'Remboursements',
+                    'lignes' => $associe->remboursements()->with('compte')->orderBy('date_operation')->get()
+                        ->map(fn (Decaissement $d) => $ligne($d, -1))->all(),
+                ],
+            ],
+            'arrete' => 'Arrêté le présent relevé au net investi de :',
+            'lettres' => MontantEnLettres::dirhams(abs($net)),
+            'totaux' => [
+                ['Total apporté', self::valeur($apporte)],
+                ['Total remboursé', self::valeur($rembourse)],
+                ['Net investi', self::valeur($net)],
+            ],
+            'conditions' => [],
+            'banque' => [],
+            'signatures' => ['L’associé', 'Service Finance'],
         ];
     }
 
