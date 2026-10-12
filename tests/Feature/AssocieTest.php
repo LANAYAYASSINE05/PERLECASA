@@ -22,8 +22,8 @@ function encaissementDe(User $auteur, float $montant = 1000): Encaissement
     ]);
 }
 
-it('laisse l’agent d’encaissement saisir un encaissement sur une vente', function () {
-    $agent = utilisateur(Role::Encaisseur);
+it('laisse l’associé saisir un encaissement sur une vente', function () {
+    $agent = utilisateur(Role::Associe);
     $vente = vente(500000);
     $this->actingAs($agent);
 
@@ -43,9 +43,9 @@ it('laisse l’agent d’encaissement saisir un encaissement sur une vente', fun
         ->and((float) Encaissement::sole()->montant)->toBe(100000.0);
 });
 
-it('ne montre à l’agent d’encaissement que ses propres encaissements et reçus', function () {
+it('ne montre à l’associé que ses propres encaissements et reçus', function () {
     $autre = encaissementDe(utilisateur(Role::Comptable));
-    $agent = utilisateur(Role::Encaisseur);
+    $agent = utilisateur(Role::Associe);
     $sien = encaissementDe($agent);
 
     expect($agent->can('view', $sien))->toBeTrue()
@@ -59,8 +59,8 @@ it('ne montre à l’agent d’encaissement que ses propres encaissements et re�
     $this->get("/encaissements/{$autre->id}/recu")->assertForbidden();
 });
 
-it('interdit à l’agent d’encaissement de modifier ou supprimer, même par appel Livewire direct', function () {
-    $agent = utilisateur(Role::Encaisseur);
+it('interdit à l’associé de modifier ou supprimer, même par appel Livewire direct', function () {
+    $agent = utilisateur(Role::Associe);
     $sien = encaissementDe($agent, 1000);
 
     expect($agent->can('update', $sien))->toBeFalse()
@@ -80,9 +80,9 @@ it('interdit à l’agent d’encaissement de modifier ou supprimer, même par a
         ->and((float) $sien->fresh()->montant)->toBe(1000.0);
 });
 
-it('cache à l’agent d’encaissement la trésorerie, les soldes et la caisse', function () {
+it('cache à l’associé la trésorerie, les soldes et la caisse', function () {
     $compte = compte(soldeInitial: 123456);
-    $this->actingAs(utilisateur(Role::Encaisseur));
+    $this->actingAs(utilisateur(Role::Associe));
 
     expect(ChiffresFinance::canView())->toBeFalse()
         ->and(FluxMensuels::canView())->toBeFalse()
@@ -94,8 +94,8 @@ it('cache à l’agent d’encaissement la trésorerie, les soldes et la caisse'
         ->assertDontSee('Nouveau décaissement');
 });
 
-it('n’envoie pas les alertes des autres encaissements à l’agent d’encaissement', function () {
-    $agent = utilisateur(Role::Encaisseur);
+it('n’envoie pas les alertes des autres encaissements à l’associé', function () {
+    $agent = utilisateur(Role::Associe);
     $comptable = utilisateur(Role::Comptable);
 
     encaissementDe(utilisateur(Role::Administrateur));

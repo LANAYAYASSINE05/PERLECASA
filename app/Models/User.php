@@ -19,7 +19,7 @@ class User extends Authenticatable implements FilamentUser
     private const ECRANS = [
         'comptable' => ['tableau', 'ventes', 'encaissements', 'decaissements', 'charges', 'fournisseurs', 'comptes', 'referentiel'],
         'caissier' => ['tableau', 'decaissements'],
-        'encaisseur' => ['tableau', 'encaissements'],
+        'associe' => ['tableau', 'encaissements'],
     ];
 
     protected $fillable = [
@@ -60,9 +60,9 @@ class User extends Authenticatable implements FilamentUser
         return $this->role === Role::Caissier;
     }
 
-    public function estEncaisseur(): bool
+    public function estAssocie(): bool
     {
-        return $this->role === Role::Encaisseur;
+        return $this->role === Role::Associe;
     }
 
     public function accede(string $ecran): bool

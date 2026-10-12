@@ -38,8 +38,8 @@ class DemoSeeder extends Seeder
             ['name' => 'Salma Idrissi', 'password' => $motDePasse, 'role' => Role::Comptable, 'actif' => true]);
         $caissier = User::updateOrCreate(['email' => 'caissier@perlacasa.ma'],
             ['name' => 'Youssef Amrani', 'password' => $motDePasse, 'role' => Role::Caissier, 'actif' => true]);
-        User::updateOrCreate(['email' => 'encaissement@perlacasa.ma'],
-            ['name' => 'Nadia Bennani', 'password' => $motDePasse, 'role' => Role::Encaisseur, 'actif' => true]);
+        User::updateOrCreate(['email' => 'associe@perlacasa.ma'],
+            ['name' => 'Nadia Bennani', 'password' => $motDePasse, 'role' => Role::Associe, 'actif' => true]);
 
         auth()->setUser($comptable);
 

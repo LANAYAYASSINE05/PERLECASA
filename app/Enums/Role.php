@@ -10,7 +10,7 @@ enum Role: string implements HasColor, HasLabel
     case Administrateur = 'admin';
     case Comptable = 'comptable';
     case Caissier = 'caissier';
-    case Encaisseur = 'encaisseur';
+    case Associe = 'associe';
 
     public function getLabel(): string
     {
@@ -18,7 +18,7 @@ enum Role: string implements HasColor, HasLabel
             self::Administrateur => 'Administrateur',
             self::Comptable => 'Comptable',
             self::Caissier => 'Opérateur de caisse',
-            self::Encaisseur => 'Agent d’encaissement',
+            self::Associe => 'Associé',
         };
     }
 
@@ -28,7 +28,7 @@ enum Role: string implements HasColor, HasLabel
             self::Administrateur => 'primary',
             self::Comptable => 'info',
             self::Caissier => 'warning',
-            self::Encaisseur => 'success',
+            self::Associe => 'success',
         };
     }
 }

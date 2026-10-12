@@ -22,7 +22,7 @@ class ChiffresFinance extends StatsOverviewWidget
     {
         $user = auth()->user();
 
-        return $user && $user->accede('encaissements') && ! $user->estEncaisseur();
+        return $user && $user->accede('encaissements') && ! $user->estAssocie();
     }
 
     protected function getStats(): array

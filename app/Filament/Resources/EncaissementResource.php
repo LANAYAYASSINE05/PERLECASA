@@ -46,7 +46,7 @@ class EncaissementResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->when(auth()->user()?->estEncaisseur(), fn ($q) => $q->where('cree_par', auth()->id()));
+            ->when(auth()->user()?->estAssocie(), fn ($q) => $q->where('cree_par', auth()->id()));
     }
 
     public static function form(Form $form): Form

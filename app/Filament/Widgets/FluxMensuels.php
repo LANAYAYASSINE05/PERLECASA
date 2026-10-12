@@ -21,7 +21,7 @@ class FluxMensuels extends ChartWidget
     {
         $user = auth()->user();
 
-        return $user && $user->accede('encaissements') && ! $user->estEncaisseur();
+        return $user && $user->accede('encaissements') && ! $user->estAssocie();
     }
 
     protected function getData(): array
