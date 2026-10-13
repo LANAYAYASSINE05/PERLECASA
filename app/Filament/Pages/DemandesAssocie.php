@@ -25,7 +25,7 @@ class DemandesAssocie extends PageAssocie implements HasTable
 
     protected static ?string $slug = 'espace-associe/demandes';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 7;
 
     protected function getHeaderActions(): array
     {

@@ -3,7 +3,6 @@
 namespace App\Filament\Widgets;
 
 use App\Enums\StatutAppartement;
-use App\Filament\Pages\FicheProgramme;
 use App\Models\Programme;
 use App\Support\Montant;
 use Filament\Tables;
@@ -39,9 +38,7 @@ class SyntheseProgrammes extends TableWidget
                     'encaisse' => $ventes('(select coalesce(sum(montant), 0) from encaissements where encaissements.vente_id = ventes.id)'),
                 ]))
             ->defaultSort('nom')
-            ->paginated(false)
-            ->recordUrl(fn (Programme $p) => FicheProgramme::urlPour($p))
-            ->emptyStateHeading('Aucun programme')
+            ->paginated(false)->emptyStateHeading('Aucun programme')
             ->columns([
                 Tables\Columns\TextColumn::make('nom')->label('Programme')->weight('bold')
                     ->description(fn (Programme $p) => $p->ville),

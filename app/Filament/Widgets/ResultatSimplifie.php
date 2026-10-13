@@ -7,21 +7,17 @@ use App\Enums\TypeEncaissement;
 use App\Models\Decaissement;
 use App\Models\Encaissement;
 use App\Support\Montant;
-use App\Support\Periode;
-use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
-/** Ventes encaissées moins dépenses, et la quote-part de l'associé selon sa part des apports. */
+/** Ventes encaissées moins dépenses depuis le début, et la quote-part de l'associé selon sa part des apports. */
 class ResultatSimplifie extends StatsOverviewWidget
 {
-    use InteractsWithPageFilters;
-
     protected static ?int $sort = 3;
 
     protected int|string|array $columnSpan = 'full';
 
-    protected ?string $heading = 'Résultat simplifié';
+    protected ?string $heading = 'Résultat de la société';
 
     public static function canView(): bool
     {
@@ -29,11 +25,10 @@ class ResultatSimplifie extends StatsOverviewWidget
     }
 
     /** @return array{ventes: float, depenses: float, resultat: float, quotePart: float} */
-    public static function chiffres(?Periode $periode = null): array
+    public static function chiffres(): array
     {
-        $periode ??= Periode::depuisFiltres(null);
-        $ventes = (float) $periode->filtrer(Encaissement::where('type', TypeEncaissement::VenteAppartement))->sum('montant');
-        $depenses = (float) $periode->filtrer(Decaissement::where('type', '!=', TypeDecaissement::RemboursementAssocie))->sum('montant');
+        $ventes = (float) Encaissement::where('type', TypeEncaissement::VenteAppartement)->sum('montant');
+        $depenses = (float) Decaissement::where('type', '!=', TypeDecaissement::RemboursementAssocie)->sum('montant');
         $resultat = $ventes - $depenses;
 
         return [
@@ -46,22 +41,17 @@ class ResultatSimplifie extends StatsOverviewWidget
 
     protected function getStats(): array
     {
-        $periode = Periode::depuisFiltres($this->filters);
-        $c = self::chiffres($periode);
+        $c = self::chiffres();
 
         return [
             Stat::make('Ventes encaissées', Montant::mad($c['ventes']))
-                ->description('Montants reçus · '.mb_strtolower($periode->libelle()))
-                ->descriptionIcon('heroicon-m-home-modern')->color('success'),
+                ->descriptionIcon('heroicon-m-home-modern')->description('depuis le début')->color('success'),
             Stat::make('Dépenses', Montant::mad($c['depenses']))
-                ->description('Charges fixes, fournisseurs, caisse')
-                ->descriptionIcon('heroicon-m-arrow-up-tray')->color('danger'),
+                ->descriptionIcon('heroicon-m-arrow-up-tray')->description('hors remboursements d’associés')->color('danger'),
             Stat::make('Résultat', Montant::mad($c['resultat']))
-                ->description('Ventes encaissées moins dépenses')
                 ->descriptionIcon('heroicon-m-scale')->color($c['resultat'] >= 0 ? 'primary' : 'danger'),
             Stat::make('Votre quote-part', Montant::mad($c['quotePart']))
-                ->description('Selon votre part du capital apporté')
-                ->descriptionIcon('heroicon-m-chart-pie')->color('warning'),
+                ->descriptionIcon('heroicon-m-chart-pie')->description('selon votre part du capital')->color('warning'),
         ];
     }
 }

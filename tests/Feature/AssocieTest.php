@@ -140,7 +140,7 @@ it('montre à l’associé ses seuls investissements', function () {
     expect($associe->netInvesti())->toBe(200000.0)
         ->and($associe->partDuCapital())->toBe(25.0);
 
-    $this->get('/mes-investissements')->assertOk()->assertSee('Mon investissement');
+    $this->get('/mes-investissements')->assertOk()->assertSee('Mes investissements');
 
     Livewire::test(ResumeInvestissements::class)->assertSee('25,00 %');
     Livewire::test(MesApports::class)
@@ -154,11 +154,13 @@ it('montre à l’associé ses seuls investissements', function () {
     $this->get("/associes/{$autre->id}/releve")->assertForbidden();
 });
 
-it('range l’espace associé en quatre pages de la barre latérale', function () {
+it('range l’espace associé en pages de la barre latérale', function () {
     $this->actingAs(utilisateur(Role::Associe))->get('/')
         ->assertOk()
-        ->assertSeeInOrder(['/mes-investissements', '/espace-associe/societe', '/espace-associe/vie-sociale', '/espace-associe/demandes'], false)
-        ->assertDontSee('/espace-associe/fiche-programme', false)
+        ->assertSee('/mes-investissements', false)
+        ->assertSee('/espace-associe/resultat', false)
+        ->assertSee('/espace-associe/tresorerie', false)
+        ->assertSee('/espace-associe/programmes', false)
         ->assertDontSee('/encaissements"', false);
 });
 
@@ -243,7 +245,7 @@ it('montre à l’associé la trésorerie, les programmes et le résultat, sans 
 
     Livewire::test(BandeauAccueil::class)
         ->assertSee('Espace associé')
-        ->assertSee('Mon investissement')
+        ->assertSee('Mes investissements')
         ->assertDontSee('Nouvel encaissement');
 
     foreach (['/ventes', '/encaissements', '/decaissements', '/comptes'] as $url) {

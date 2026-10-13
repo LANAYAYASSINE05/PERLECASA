@@ -39,10 +39,8 @@ class Associes extends Page implements HasTable
             ->emptyStateDescription('Créez un utilisateur avec le rôle « Associé » dans Utilisateurs.')
             ->columns([
                 Tables\Columns\TextColumn::make('name')->label('Associé')->searchable()->sortable()->weight('bold')
-                    ->description(fn (User $u) => collect([$u->email, $u->telephone])->filter()->implode(' · ')),
+                    ->description(fn (User $u) => $u->email),
                 Tables\Columns\IconColumn::make('actif')->boolean()->alignCenter()->visibleFrom('md'),
-                Tables\Columns\TextColumn::make('rib')->label('RIB')->placeholder('Non renseigné')->copyable()->visibleFrom('xl')
-                    ->description(fn (User $u) => $u->banque),
                 Tables\Columns\TextColumn::make('apports_sum_montant')->label('Apporté')->alignEnd()->sortable()->color('success')
                     ->formatStateUsing(fn ($state) => Montant::mad((float) $state))->default(0),
                 Tables\Columns\TextColumn::make('remboursements_sum_montant')->label('Remboursé')->alignEnd()->sortable()->color('danger')

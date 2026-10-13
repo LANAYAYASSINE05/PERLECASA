@@ -31,7 +31,7 @@ class BandeauAccueil extends Widget
             ['ecran' => 'decaissements', 'libelle' => $user->estCaissier() ? 'Nouvelle opération de caisse' : 'Nouveau décaissement', 'icone' => 'heroicon-o-arrow-up-tray', 'url' => DecaissementResource::getUrl('index', ['action' => 'create'])],
             ['ecran' => 'ventes', 'libelle' => 'Appartements vendus', 'icone' => 'heroicon-o-key', 'url' => VenteResource::getUrl('index')],
             ['ecran' => 'charges', 'libelle' => 'Charges à payer', 'icone' => 'heroicon-o-calendar-days', 'url' => ChargeFixeResource::getUrl('index')],
-            ['ecran' => 'investissements', 'libelle' => 'Mon investissement', 'icone' => 'heroicon-o-chart-pie', 'url' => MesInvestissements::getUrl()],
+            ['ecran' => 'investissements', 'libelle' => 'Mes investissements', 'icone' => 'heroicon-o-chart-pie', 'url' => MesInvestissements::getUrl()],
         ])->filter(fn (array $a) => $user->accede($a['ecran']))->values()->all();
 
         $nonJustifiees = $user->accede('decaissements') ? DecaissementResource::getEloquentQuery()->caisseNonJustifiee() : null;
