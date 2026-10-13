@@ -1,36 +1,29 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Filament\Widgets;
 
 use App\Enums\CategorieDocument;
 use App\Filament\Resources\DocumentAssocieResource;
-use App\Filament\Support\PageAssocie;
 use App\Models\DocumentAssocie;
 use Filament\Tables;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Filament\Widgets\TableWidget;
 
-class DocumentsAssocie extends PageAssocie implements HasTable
+class DocumentsPartages extends TableWidget
 {
-    use InteractsWithTable;
+    protected static ?string $heading = 'Documents';
 
-    protected static string $view = 'filament.pages.associe-tableau';
+    protected int|string|array $columnSpan = 'full';
 
-    protected static ?string $navigationIcon = 'heroicon-o-folder-open';
-
-    protected static ?string $title = 'Documents';
-
-    protected static ?string $slug = 'espace-associe/documents';
-
-    protected static ?string $navigationGroup = 'Vie sociale';
-
-    protected static ?int $navigationSort = 3;
+    public static function canView(): bool
+    {
+        return (bool) auth()->user()?->accede('investissements');
+    }
 
     public function table(Table $table): Table
     {
         return $table
-            ->query(DocumentAssocie::query())
+            ->query(fn () => DocumentAssocie::query())
             ->defaultSort('date_document', 'desc')
             ->emptyStateHeading('Aucun document partagé pour l’instant')
             ->columns(DocumentAssocieResource::colonnes())

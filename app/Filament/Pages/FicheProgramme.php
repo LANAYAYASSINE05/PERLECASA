@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Filament\Support\PageAssocie;
 use App\Filament\Widgets;
 use App\Models\Programme;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
@@ -16,13 +17,19 @@ class FicheProgramme extends PageAssocie
 
     protected static ?string $navigationIcon = 'heroicon-o-document-magnifying-glass';
 
-    protected static ?string $navigationGroup = 'Programmes immobiliers';
-
     protected static ?string $title = 'Fiche programme';
 
     protected static ?string $slug = 'espace-associe/fiche-programme';
 
-    protected static ?int $navigationSort = 2;
+    protected static bool $shouldRegisterNavigation = false;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('retour')->label('La société')->icon('heroicon-o-arrow-left')->color('gray')
+                ->url(SocieteAssocie::getUrl()),
+        ];
+    }
 
     public static function programmeChoisi(?array $filtres): ?int
     {

@@ -5,12 +5,10 @@ namespace App\Services;
 use App\Enums\Role;
 use App\Enums\StatutBonCommande;
 use App\Enums\TypeDecaissement;
-use App\Filament\Pages\ActualitesAssocie;
-use App\Filament\Pages\AgendaAssocie;
 use App\Filament\Pages\Associes;
 use App\Filament\Pages\DemandesAssocie;
-use App\Filament\Pages\DocumentsAssocie;
 use App\Filament\Pages\MesInvestissements;
+use App\Filament\Pages\VieSocialeAssocie;
 use App\Filament\Resources\BonCommandeResource;
 use App\Filament\Resources\ChargeFixeResource;
 use App\Filament\Resources\DecaissementResource;
@@ -148,7 +146,7 @@ class Alertes
             ->icon('heroicon-o-folder-open')
             ->title('Nouveau document : '.$d->titre)
             ->body(self::corps($d->categorie->getLabel(), $d->date_document->format('d/m/Y')))
-            ->actions([self::voir(DocumentsAssocie::getUrl())]));
+            ->actions([self::voir(VieSocialeAssocie::getUrl())]));
     }
 
     public static function actualite(Actualite $a): void
@@ -158,7 +156,7 @@ class Alertes
             ->icon('heroicon-o-megaphone')
             ->title('Actualité : '.$a->titre)
             ->body(e(str($a->contenu)->limit(140)))
-            ->actions([self::voir(ActualitesAssocie::getUrl())]));
+            ->actions([self::voir(VieSocialeAssocie::getUrl())]));
     }
 
     public static function evenement(Evenement $e): void
@@ -168,7 +166,7 @@ class Alertes
             ->icon('heroicon-o-calendar-days')
             ->title("{$e->type->getLabel()} le {$e->date_debut->format('d/m/Y')}")
             ->body(self::corps($e->titre, (string) $e->lieu))
-            ->actions([self::voir(AgendaAssocie::getUrl())]));
+            ->actions([self::voir(VieSocialeAssocie::getUrl())]));
     }
 
     /** Un changement de RIB doit être connu de l'administrateur avant tout remboursement. */

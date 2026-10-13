@@ -1,27 +1,24 @@
 <?php
 
-use App\Enums\CategorieCharge;
 use App\Enums\ModePaiement;
-use App\Enums\Periodicite;
 use App\Enums\Role;
 use App\Enums\TypeEncaissement;
 use App\Enums\TypeEvenement;
-use App\Filament\Pages\AgendaAssocie;
-use App\Filament\Pages\CapitalAssocie;
-use App\Filament\Pages\ChargesAssocie;
 use App\Filament\Pages\FicheProgramme;
-use App\Filament\Pages\ProfilAssocie;
+use App\Filament\Pages\MesInvestissements;
+use App\Filament\Pages\VieSocialeAssocie;
 use App\Filament\Resources\ActualiteResource\Pages\ManageActualites;
 use App\Filament\Resources\EvenementResource\Pages\ManageEvenements;
+use App\Filament\Widgets\AgendaAssocies;
+use App\Filament\Widgets\DernieresActualites;
 use App\Filament\Widgets\EncaissementsProgramme;
 use App\Filament\Widgets\GraphiqueCapital;
 use App\Filament\Widgets\LotsProgramme;
-use App\Filament\Widgets\ResumeCharges;
 use App\Filament\Widgets\ResumeStock;
+use App\Filament\Widgets\TableauCapital;
 use App\Filament\Widgets\VentesProgramme;
 use App\Models\Actualite;
 use App\Models\Appartement;
-use App\Models\ChargeFixe;
 use App\Models\Encaissement;
 use App\Models\Evenement;
 use App\Models\Programme;
@@ -66,7 +63,6 @@ it('montre le stock et la fiche d’un programme sans client', function () {
         ->and(end(EncaissementsProgramme::serie($programme->id)['montants']))->toBe(400000.0)
         ->and(EncaissementsProgramme::serie($autre->programme_id)['montants'])->each->toBe(0.0);
 
-    $this->get('/espace-associe/stock')->assertOk()->assertSee('Stock des appartements');
     Livewire::test(LotsProgramme::class)
         ->assertCanSeeTableRecords([$libre, $autre, $vente->appartement])
         ->assertDontSee($vente->client->nom.' '.$vente->client->prenom);
@@ -90,7 +86,7 @@ it('montre la répartition du capital avec les noms, sans coordonnées', functio
 
     expect(GraphiqueCapital::parts())->toBe([$autre->name => 75.0, $associe->name => 25.0]);
 
-    Livewire::test(CapitalAssocie::class)
+    Livewire::test(TableauCapital::class)
         ->assertCanSeeTableRecords([$associe, $autre])
         ->assertSee('75,00 %')
         ->assertSee('Vous')
@@ -120,13 +116,14 @@ it('publie actualités et agenda pour les associés, qui en sont prévenus', fun
         ->and($passe->montant)->toBeNull();
 
     $this->actingAs($associe);
-    $this->get('/espace-associe/actualites')->assertOk()->assertSee('Lancement du gros œuvre')->assertSee('Réunion sur site.');
-    Livewire::test(AgendaAssocie::class)
+    $this->get('/espace-associe/vie-sociale')->assertOk();
+    Livewire::test(DernieresActualites::class)->assertSee('Lancement du gros œuvre')->assertSee('Réunion sur site.');
+    Livewire::test(AgendaAssocies::class)
         ->assertCanSeeTableRecords([Evenement::firstWhere('titre', 'AG ordinaire')])
         ->assertCanNotSeeTableRecords([$passe])
         ->filterTable('quand', false)
         ->assertCanSeeTableRecords([$passe]);
-    expect(AgendaAssocie::getNavigationBadge())->toBe('1');
+    expect(VieSocialeAssocie::getNavigationBadge())->toBe('1');
 
     $this->get('/actualites')->assertForbidden();
     $this->get('/agenda')->assertForbidden();
@@ -138,15 +135,13 @@ it('laisse l’associé renseigner son RIB et prévient l’administrateur', fun
     $associe = utilisateur(Role::Associe);
     $this->actingAs($associe);
 
-    Livewire::test(ProfilAssocie::class)
-        ->fillForm(['banque' => 'Banque test', 'rib' => '1234'])
-        ->call('enregistrer')
-        ->assertHasFormErrors(['rib']);
+    Livewire::test(MesInvestissements::class)
+        ->callAction('profil', ['banque' => 'Banque test', 'rib' => '1234'])
+        ->assertHasActionErrors(['rib']);
 
-    Livewire::test(ProfilAssocie::class)
-        ->fillForm(['telephone' => '0611223344', 'banque' => 'Banque test', 'rib' => '0111 2222 3333 4444 5555 6666', 'name' => 'Pirate', 'email' => 'pirate@x.ma'])
-        ->call('enregistrer')
-        ->assertHasNoFormErrors();
+    Livewire::test(MesInvestissements::class)
+        ->callAction('profil', ['telephone' => '0611223344', 'banque' => 'Banque test', 'rib' => '0111 2222 3333 4444 5555 6666', 'name' => 'Pirate', 'email' => 'pirate@x.ma'])
+        ->assertHasNoActionErrors();
 
     $associe->refresh();
     expect($associe->rib)->toBe('011122223333444455556666')
@@ -156,49 +151,35 @@ it('laisse l’associé renseigner son RIB et prévient l’administrateur', fun
         ->and($admin->notifications()->first()->data['body'])->toContain('6666')->not->toContain('011122223333');
 });
 
-it('montre les charges fixes en lecture seule', function () {
-    ChargeFixe::create(['libelle' => 'Loyer bureau', 'categorie' => CategorieCharge::Loyer, 'montant' => 6000, 'periodicite' => Periodicite::Mensuelle]);
-    ChargeFixe::create(['libelle' => 'Assurance', 'categorie' => CategorieCharge::Assurance, 'montant' => 12000, 'periodicite' => Periodicite::Annuelle]);
-    ChargeFixe::create(['libelle' => 'Ancienne', 'categorie' => CategorieCharge::Autre, 'montant' => 999, 'periodicite' => Periodicite::Mensuelle, 'actif' => false]);
-
-    $this->actingAs(utilisateur(Role::Associe));
-
-    expect(ResumeCharges::chiffres())->toBe(['budget' => 7000.0, 'regle' => 0.0, 'retards' => 0]);
-    Livewire::test(ChargesAssocie::class)->assertOk()->assertSee('Loyer bureau')->assertDontSee('Ancienne');
-    $this->get('/charges-fixes')->assertForbidden();
-});
-
-it('range les pages de l’associé en groupes dans la barre latérale', function () {
+it('ne garde que quatre pages dans la barre latérale de l’associé', function () {
     $this->actingAs(utilisateur(Role::Associe))->get('/')
         ->assertOk()
-        ->assertSeeInOrder(['Mon investissement', 'La société', 'Programmes immobiliers', 'Vie sociale'])
-        ->assertSee('/espace-associe/capital', false)
-        ->assertSee('/espace-associe/profil', false)
-        ->assertSee('/espace-associe/charges', false)
-        ->assertSee('/espace-associe/stock', false)
-        ->assertSee('/espace-associe/fiche-programme', false)
-        ->assertSee('/espace-associe/actualites', false)
-        ->assertSee('/espace-associe/agenda', false);
+        ->assertSeeInOrder(['Mon investissement', 'La société', 'Documents &amp; agenda', 'Mes demandes'], false)
+        ->assertDontSee('/espace-associe/capital', false)
+        ->assertDontSee('/espace-associe/charges', false)
+        ->assertDontSee('/espace-associe/stock', false)
+        ->assertDontSee('/espace-associe/fiche-programme', false);
 });
 
 it('affiche chaque page de l’espace associé', function (string $url) {
     vente();
-    ChargeFixe::create(['libelle' => 'Loyer', 'categorie' => CategorieCharge::Loyer, 'montant' => 5000, 'periodicite' => Periodicite::Mensuelle]);
     apportDe($associe = utilisateur(Role::Associe), 1000);
     Evenement::create(['titre' => 'AG', 'type' => TypeEvenement::AssembleeGenerale, 'date_debut' => now()->addWeek()]);
     Actualite::create(['titre' => 'Bienvenue', 'contenu' => 'Texte']);
 
     $this->actingAs($associe)->get($url)->assertOk();
-})->with(['/mes-investissements', '/espace-associe/capital', '/espace-associe/demandes', '/espace-associe/profil',
-    '/espace-associe/resultat', '/espace-associe/tresorerie', '/espace-associe/charges',
-    '/espace-associe/programmes', '/espace-associe/fiche-programme', '/espace-associe/stock',
-    '/espace-associe/actualites', '/espace-associe/agenda', '/espace-associe/documents']);
+})->with(['/mes-investissements', '/espace-associe/societe', '/espace-associe/vie-sociale',
+    '/espace-associe/demandes', '/espace-associe/fiche-programme']);
 
-it('ferme les nouvelles pages aux autres rôles', function (string $url) {
+it('ferme l’espace associé aux autres rôles', function (string $url) {
     $this->actingAs(utilisateur(Role::Comptable))->get($url)->assertForbidden();
     $this->actingAs(utilisateur(Role::Administrateur))->get($url)->assertForbidden();
+})->with(['/mes-investissements', '/espace-associe/societe', '/espace-associe/vie-sociale', '/espace-associe/fiche-programme']);
+
+it('retire les anciennes pages détaillées', function (string $url) {
+    $this->actingAs(utilisateur(Role::Associe))->get($url)->assertNotFound();
 })->with(['/espace-associe/capital', '/espace-associe/profil', '/espace-associe/charges', '/espace-associe/stock',
-    '/espace-associe/fiche-programme', '/espace-associe/actualites', '/espace-associe/agenda']);
+    '/espace-associe/resultat', '/espace-associe/tresorerie', '/espace-associe/programmes', '/espace-associe/documents']);
 
 it('ouvre à l’administrateur la gestion des actualités et de l’agenda', function () {
     $this->actingAs(utilisateur(Role::Administrateur));

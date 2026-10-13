@@ -8,11 +8,10 @@ use App\Enums\TypeDecaissement;
 use App\Enums\TypeDemande;
 use App\Enums\TypeEncaissement;
 use App\Filament\Pages\DemandesAssocie;
-use App\Filament\Pages\DocumentsAssocie;
-use App\Filament\Pages\ResultatAssocie;
-use App\Filament\Pages\TresorerieAssocie;
+use App\Filament\Pages\SocieteAssocie;
 use App\Filament\Resources\DemandeAssocieResource\Pages\ManageDemandesAssocies;
 use App\Filament\Resources\DocumentAssocieResource\Pages\ManageDocumentsAssocies;
+use App\Filament\Widgets\DocumentsPartages;
 use App\Filament\Widgets\EvolutionResultat;
 use App\Filament\Widgets\RepartitionDepenses;
 use App\Filament\Widgets\ResteAEncaisser;
@@ -62,8 +61,7 @@ it('filtre le résultat et la trésorerie par période', function () {
         ->and(end($series['ventes']))->toBe(300000.0)
         ->and(end($series['resultat']))->toBe(200000.0);
 
-    Livewire::test(ResultatAssocie::class)->assertOk()->assertSee('Depuis le début');
-    Livewire::test(TresorerieAssocie::class)->assertOk()->assertSet('filters.periode', 'mois');
+    Livewire::test(SocieteAssocie::class)->assertOk()->assertSet('filters.periode', 'annee')->assertSee('Depuis le début');
     Livewire::test(SyntheseTresorerie::class, ['filters' => ['periode' => 'tout']])->assertOk();
 });
 
@@ -115,13 +113,14 @@ it('partage les documents de l’administrateur avec les associés seulement', f
     expect($associe->notifications()->get()->pluck('data.title')->implode(' '))->toContain('PV AG 2026');
 
     $this->actingAs($associe);
-    Livewire::test(DocumentsAssocie::class)->assertCanSeeTableRecords([$document]);
+    Livewire::test(DocumentsPartages::class)->assertCanSeeTableRecords([$document]);
+    $this->get('/espace-associe/vie-sociale')->assertOk();
     $this->get("/documents-associes/{$document->id}/telecharger")->assertOk();
     $this->get('/documents-associes')->assertForbidden();
 
     $this->actingAs(utilisateur(Role::Comptable));
     $this->get("/documents-associes/{$document->id}/telecharger")->assertForbidden();
-    $this->get('/espace-associe/documents')->assertForbidden();
+    $this->get('/espace-associe/vie-sociale')->assertForbidden();
 });
 
 it('fait circuler une demande de l’associé vers l’administrateur et sa réponse en retour', function () {
@@ -165,13 +164,6 @@ it('fait circuler une demande de l’associé vers l’administrateur et sa rép
 
     $this->actingAs($associe);
     Livewire::test(DemandesAssocie::class)->assertCanSeeTableRecords([$demande])->assertSee('Pas avant la clôture.');
-});
-
-it('ajoute documents et demandes à la barre latérale de l’associé', function () {
-    $this->actingAs(utilisateur(Role::Associe))->get('/')
-        ->assertOk()
-        ->assertSee('/espace-associe/documents', false)
-        ->assertSee('/espace-associe/demandes', false);
 });
 
 it('ferme au comptable la gestion des documents et des demandes', function (string $url) {

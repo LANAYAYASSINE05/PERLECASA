@@ -1,39 +1,24 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Filament\Widgets;
 
-use App\Filament\Support\PageAssocie;
-use App\Filament\Widgets\GraphiqueCapital;
 use App\Models\User;
 use App\Support\Montant;
 use Filament\Tables;
 use Filament\Tables\Columns\Summarizers\Summarizer;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Filament\Widgets\TableWidget;
 
 /** Tous les associés et leur part : noms visibles, sans coordonnées ni RIB. */
-class CapitalAssocie extends PageAssocie implements HasTable
+class TableauCapital extends TableWidget
 {
-    use InteractsWithTable;
+    protected static ?string $heading = 'Associés et parts du capital';
 
-    protected static string $view = 'filament.pages.associe-tableau';
+    protected int|string|array $columnSpan = 'full';
 
-    protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
-
-    protected static ?string $navigationGroup = 'Mon investissement';
-
-    protected static ?string $navigationLabel = 'Répartition du capital';
-
-    protected static ?string $title = 'Répartition du capital';
-
-    protected static ?string $slug = 'espace-associe/capital';
-
-    protected static ?int $navigationSort = 2;
-
-    protected function getHeaderWidgets(): array
+    public static function canView(): bool
     {
-        return [GraphiqueCapital::class];
+        return (bool) auth()->user()?->accede('investissements');
     }
 
     public function table(Table $table): Table
@@ -41,7 +26,7 @@ class CapitalAssocie extends PageAssocie implements HasTable
         $montant = fn ($state) => Montant::mad((float) $state);
 
         return $table
-            ->query(User::query()->associesAvecSoldes())
+            ->query(fn () => User::query()->associesAvecSoldes())
             ->defaultSort('apports_sum_montant', 'desc')
             ->paginated(false)
             ->emptyStateHeading('Aucun associé')

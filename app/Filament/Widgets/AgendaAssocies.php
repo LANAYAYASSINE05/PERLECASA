@@ -1,43 +1,29 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Filament\Widgets;
 
 use App\Enums\TypeEvenement;
 use App\Filament\Resources\EvenementResource;
-use App\Filament\Support\PageAssocie;
 use App\Models\Evenement;
 use Filament\Tables;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Filament\Widgets\TableWidget;
 
-class AgendaAssocie extends PageAssocie implements HasTable
+class AgendaAssocies extends TableWidget
 {
-    use InteractsWithTable;
+    protected static ?string $heading = 'Agenda';
 
-    protected static string $view = 'filament.pages.associe-tableau';
+    protected int|string|array $columnSpan = 'full';
 
-    protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
-
-    protected static ?string $navigationGroup = 'Vie sociale';
-
-    protected static ?string $title = 'Agenda';
-
-    protected static ?string $slug = 'espace-associe/agenda';
-
-    protected static ?int $navigationSort = 2;
-
-    public static function getNavigationBadge(): ?string
+    public static function canView(): bool
     {
-        $nombre = Evenement::aVenir()->where('date_debut', '<=', now()->addDays(30))->count();
-
-        return $nombre ? (string) $nombre : null;
+        return (bool) auth()->user()?->accede('investissements');
     }
 
     public function table(Table $table): Table
     {
         return $table
-            ->query(Evenement::query())
+            ->query(fn () => Evenement::query())
             ->defaultSort('date_debut')
             ->emptyStateHeading('Aucune échéance')
             ->columns(EvenementResource::colonnes())

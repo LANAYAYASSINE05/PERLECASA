@@ -1,59 +1,31 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Filament\Support;
 
-use App\Filament\Support\PageAssocie;
 use App\Services\Alertes;
 use Closure;
+use Filament\Actions\Action;
 use Filament\Forms;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 
 /** Coordonnées et RIB de l'associé, utilisés par l'administrateur pour ses remboursements. */
-class ProfilAssocie extends PageAssocie implements HasForms
+class ProfilAssocie
 {
-    use InteractsWithForms;
-
     private const CHAMPS = ['telephone', 'cin', 'adresse', 'banque', 'rib'];
 
-    protected static string $view = 'filament.pages.profil-associe';
-
-    protected static ?string $navigationIcon = 'heroicon-o-identification';
-
-    protected static ?string $navigationGroup = 'Mon investissement';
-
-    protected static ?string $title = 'Mon profil';
-
-    protected static ?string $slug = 'espace-associe/profil';
-
-    protected static ?int $navigationSort = 4;
-
-    public ?array $data = [];
-
-    public function mount(): void
+    public static function action(): Action
     {
-        $this->form->fill(auth()->user()->only(['name', 'email', ...self::CHAMPS]));
-    }
-
-    public function form(Form $form): Form
-    {
-        return $form->statePath('data')->schema([
-            Forms\Components\Section::make('Identité')
-                ->description('Le nom et l’e-mail sont gérés par l’administrateur.')
-                ->columns(2)
-                ->schema([
-                    Forms\Components\TextInput::make('name')->label('Nom')->disabled()->dehydrated(false),
-                    Forms\Components\TextInput::make('email')->label('E-mail')->disabled()->dehydrated(false),
+        return Action::make('profil')->label('Mon profil')
+            ->icon('heroicon-o-identification')->color('gray')
+            ->modalHeading('Mon profil')
+            ->modalDescription('Le nom et l’e-mail sont gérés par l’administrateur. Il est prévenu de tout changement de RIB.')
+            ->modalSubmitActionLabel('Enregistrer')
+            ->fillForm(fn () => auth()->user()->only(self::CHAMPS))
+            ->form([
+                Forms\Components\Grid::make(2)->schema([
                     Forms\Components\TextInput::make('telephone')->label('Téléphone')->tel()->maxLength(30),
                     Forms\Components\TextInput::make('cin')->label('CIN')->maxLength(20),
                     Forms\Components\TextInput::make('adresse')->maxLength(255)->columnSpanFull(),
-                ]),
-            Forms\Components\Section::make('Coordonnées bancaires')
-                ->description('Compte sur lequel vos remboursements sont virés. L’administrateur est prévenu de tout changement.')
-                ->columns(2)
-                ->schema([
                     Forms\Components\TextInput::make('banque')->maxLength(100),
                     Forms\Components\TextInput::make('rib')->label('RIB (24 chiffres)')
                         ->requiredWith('banque')
@@ -64,13 +36,14 @@ class ProfilAssocie extends PageAssocie implements HasForms
                             }
                         }),
                 ]),
-        ]);
+            ])
+            ->action(fn (array $data) => self::enregistrer($data));
     }
 
-    public function enregistrer(): void
+    private static function enregistrer(array $data): void
     {
         $user = auth()->user();
-        $user->forceFill(collect($this->form->getState())->only(self::CHAMPS)->map(fn ($v) => filled($v) ? $v : null)->all());
+        $user->forceFill(collect($data)->only(self::CHAMPS)->map(fn ($v) => filled($v) ? $v : null)->all());
 
         if (! $user->isDirty()) {
             Notification::make()->info()->title('Aucune modification')->send();
@@ -82,7 +55,6 @@ class ProfilAssocie extends PageAssocie implements HasForms
         $user->save();
         Alertes::coordonneesAssocie($user, $ribModifie);
 
-        $this->form->fill($user->only(['name', 'email', ...self::CHAMPS]));
         Notification::make()->success()->title('Profil enregistré')->send();
     }
 
