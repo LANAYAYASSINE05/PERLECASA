@@ -14,15 +14,21 @@ use App\Models\User;
 use App\Models\Vente;
 use App\Support\Montant;
 use App\Support\PeriodeTableau;
-use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Database\Eloquent\Builder;
+use Livewire\Attributes\Session;
 
 /** Mouvements de la période choisie (aujourd'hui par défaut) ; chaque carte suit les écrans du rôle, le caissier ne voit que la caisse. */
 class ChiffresDuJour extends StatsOverviewWidget
 {
-    use InteractsWithPageFilters;
+    protected static string $view = 'filament.widgets.chiffres-du-jour';
+
+    #[Session]
+    public string $periode = 'aujourdhui';
+
+    #[Session]
+    public ?string $date = null;
 
     protected static ?int $sort = 1;
 
@@ -35,9 +41,16 @@ class ChiffresDuJour extends StatsOverviewWidget
         return (bool) auth()->user()?->accede('tableau');
     }
 
+    public function updatedPeriode(string $valeur): void
+    {
+        if ($valeur === 'date' && blank($this->date)) {
+            $this->date = today()->toDateString();
+        }
+    }
+
     private function periode(): PeriodeTableau
     {
-        return PeriodeTableau::depuisFiltres($this->filters);
+        return PeriodeTableau::depuisFiltres(['periode' => $this->periode, 'date' => $this->date]);
     }
 
     protected function getHeading(): ?string

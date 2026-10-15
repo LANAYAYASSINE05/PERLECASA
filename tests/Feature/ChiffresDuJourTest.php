@@ -7,7 +7,6 @@ use App\Enums\Role;
 use App\Enums\TypeCompte;
 use App\Enums\TypeDecaissement;
 use App\Enums\TypeEncaissement;
-use App\Filament\Pages\TableauDeBord;
 use App\Filament\Widgets\ChiffresDuJour;
 use App\Models\ChargeFixe;
 use App\Models\Decaissement;
@@ -100,16 +99,20 @@ it('filtre les cartes par période', function () {
     $mois = ChiffresDuJour::chiffres($admin, PeriodeTableau::depuisFiltres(['periode' => 'mois']));
     expect($mois['encaisse'])->toBe(now()->day > 1 ? 250000.0 : 200000.0);
 
-    Livewire::test(ChiffresDuJour::class, ['filters' => ['periode' => 'hier']])
-        ->assertSee('Encaissé hier')->assertSee('50 000,00')
-        ->assertSee('Solde du jour');
-    Livewire::test(ChiffresDuJour::class, ['filters' => ['periode' => 'semaine']])
-        ->assertSee('Cette semaine')->assertSee('Solde de la période');
+    Livewire::test(ChiffresDuJour::class)
+        ->assertSee('Période des cartes', false)
+        ->assertSee('Aujourd’hui ·')
+        ->set('periode', 'hier')
+        ->assertSee('Hier ·')->assertSee('Encaissé hier')->assertSee('50 000,00')
+        ->assertSee('Solde du jour')
+        ->set('periode', 'semaine')
+        ->assertSee('Cette semaine ·')->assertSee('Solde de la période')
+        ->set('periode', 'date')
+        ->assertSet('date', today()->toDateString())
+        ->set('date', now()->subDay()->toDateString())
+        ->assertSee('Encaissé le '.now()->subDay()->format('d/m/Y'));
 
-    Livewire::test(TableauDeBord::class)
-        ->assertSet('filters.periode', 'aujourdhui')
-        ->set('filters.periode', 'hier')
-        ->assertSet('filters.periode', 'hier');
+    expect(Livewire::test(ChiffresDuJour::class)->get('periode'))->toBe('date');
 });
 
 it('affiche les cartes du jour sur le tableau de bord de chaque rôle', function (Role $role) {
