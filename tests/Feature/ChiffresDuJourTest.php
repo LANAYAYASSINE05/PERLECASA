@@ -46,18 +46,17 @@ beforeEach(function () {
 it('compte les mouvements du jour seulement', function () {
     expect(ChiffresDuJour::chiffres(auth()->user()))->toMatchArray([
         'encaisse' => 200000.0, 'encaissements' => 1,
-        'decaisse' => 30500.0, 'decaissements' => 2,
-        'ventes' => 800000.0, 'nbVentes' => 1,
-        'caisse' => 500.0, 'nbCaisse' => 1, 'caisseNonJustifiee' => 1,
-        'chargesARegler' => 6000.0, 'nbCharges' => 1, 'nbRetards' => 0,
+        'decaisse' => 30500.0, 'decaissements' => 2, 'sansPiece' => 1,
+        'resteAEncaisser' => 550000.0,
     ]);
 
     Livewire::test(ChiffresDuJour::class)
         ->assertSee('Encaissé aujourd’hui')->assertSee('200 000,00')
         ->assertSee('Solde du jour')->assertSee('169 500,00')
-        ->assertSee('Ventes aujourd’hui')
         ->assertSee('dont 1 sans pièce')
-        ->assertSee('Charges fixes à régler');
+        ->assertSee('Reste à encaisser')->assertSee('550 000,00')
+        ->assertDontSee('Ventes aujourd’hui')
+        ->assertDontSee('Charges fixes à régler');
 });
 
 it('ne montre au caissier que sa caisse', function () {
@@ -68,24 +67,22 @@ it('ne montre au caissier que sa caisse', function () {
 
     Livewire::test(ChiffresDuJour::class)
         ->assertSee('Sorti de caisse aujourd’hui')
-        ->assertSee('Caisse aujourd’hui')
+        ->assertSee('dont 1 sans pièce')
         ->assertDontSee('Encaissé aujourd’hui')
         ->assertDontSee('Solde du jour')
-        ->assertDontSee('Ventes aujourd’hui')
-        ->assertDontSee('Charges fixes à régler')
+        ->assertDontSee('Reste à encaisser')
         ->assertDontSee('30 500,00');
 });
 
-it('montre à l’associé les chiffres du jour sans caisse ni charges', function () {
+it('montre à l’associé les quatre chiffres sans le détail de caisse', function () {
     $this->actingAs(utilisateur(Role::Associe));
 
     Livewire::test(ChiffresDuJour::class)
         ->assertSee('Encaissé aujourd’hui')
         ->assertSee('Décaissé aujourd’hui')
         ->assertSee('Solde du jour')
-        ->assertSee('Ventes aujourd’hui')
-        ->assertDontSee('Caisse aujourd’hui')
-        ->assertDontSee('Charges fixes à régler');
+        ->assertSee('Reste à encaisser')
+        ->assertDontSee('sans pièce');
 });
 
 it('filtre les cartes par période', function () {

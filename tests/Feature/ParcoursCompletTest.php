@@ -85,7 +85,7 @@ it('affiche chaque widget du tableau de bord', function (string $widget) {
     Livewire::test($widget)->assertSuccessful();
 })->with([
     Widgets\BandeauAccueil::class,
-    Widgets\ChiffresFinance::class,
+    Widgets\ChiffresDuJour::class,
     Widgets\FluxMensuels::class,
     Widgets\CaisseNonJustifiee::class,
     Widgets\ChargesEnRetard::class,

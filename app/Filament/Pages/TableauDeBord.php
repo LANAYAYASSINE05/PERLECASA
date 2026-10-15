@@ -23,7 +23,6 @@ class TableauDeBord extends Dashboard
             Widgets\ChiffresDuJour::class,
             Widgets\ResumeInvestissements::class,
             Widgets\ResultatSimplifie::class,
-            Widgets\ChiffresFinance::class,
             Widgets\FluxMensuels::class,
             Widgets\ChargesEnRetard::class,
             Widgets\CaisseNonJustifiee::class,
