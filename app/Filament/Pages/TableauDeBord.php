@@ -21,6 +21,7 @@ class TableauDeBord extends Dashboard
         return [
             Widgets\BandeauAccueil::class,
             Widgets\ChiffresDuJour::class,
+            Widgets\ComptesTresorerie::class,
             Widgets\ResumeInvestissements::class,
             Widgets\ResultatSimplifie::class,
             Widgets\FluxMensuels::class,

@@ -15,6 +15,7 @@ use App\Filament\Widgets\BandeauAccueil;
 use App\Filament\Widgets\CaisseNonJustifiee;
 use App\Filament\Widgets\ChargesEnRetard;
 use App\Filament\Widgets\ChiffresDuJour;
+use App\Filament\Widgets\ComptesTresorerie;
 use App\Filament\Widgets\FluxMensuels;
 use App\Models\ChargeFixe;
 use App\Models\Decaissement;
@@ -156,6 +157,9 @@ it('affiche le tableau de bord avec les données de démonstration', function ()
         ->assertSee('Nouvel encaissement');
     Livewire::test(BandeauAccueil::class)->assertSee('Caisse à justifier');
     Livewire::test(ChiffresDuJour::class)->set('periode', 'mois')->assertSee('Reste à encaisser');
+    Livewire::test(ComptesTresorerie::class)
+        ->assertSee('Trésorerie disponible')
+        ->assertSee('Comptes et trésorerie');
     Livewire::test(CaisseNonJustifiee::class)->assertCanSeeTableRecords(Decaissement::caisseNonJustifiee()->get());
     Livewire::test(FluxMensuels::class)->assertOk();
     Livewire::test(ChargesEnRetard::class)->assertOk();

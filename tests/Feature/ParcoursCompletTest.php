@@ -86,6 +86,7 @@ it('affiche chaque widget du tableau de bord', function (string $widget) {
 })->with([
     Widgets\BandeauAccueil::class,
     Widgets\ChiffresDuJour::class,
+    Widgets\ComptesTresorerie::class,
     Widgets\FluxMensuels::class,
     Widgets\CaisseNonJustifiee::class,
     Widgets\ChargesEnRetard::class,

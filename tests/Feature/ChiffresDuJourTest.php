@@ -8,6 +8,7 @@ use App\Enums\TypeCompte;
 use App\Enums\TypeDecaissement;
 use App\Enums\TypeEncaissement;
 use App\Filament\Widgets\ChiffresDuJour;
+use App\Filament\Widgets\ComptesTresorerie;
 use App\Models\ChargeFixe;
 use App\Models\Decaissement;
 use App\Models\Encaissement;
@@ -118,3 +119,18 @@ it('filtre les cartes par période', function () {
 it('affiche les cartes du jour sur le tableau de bord de chaque rôle', function (Role $role) {
     $this->actingAs(utilisateur($role))->get('/')->assertOk()->assertSee('Aujourd’hui');
 })->with([Role::Administrateur, Role::Comptable, Role::Caissier, Role::Associe]);
+
+it('montre les soldes des comptes et la trésorerie', function () {
+    Livewire::test(ComptesTresorerie::class)
+        ->assertSee('Comptes et trésorerie')
+        ->assertSee('Trésorerie disponible')
+        ->assertSee('729 500,00')
+        ->assertSee('Banque')
+        ->assertSee('Caisse');
+
+    $this->actingAs(utilisateur(Role::Caissier));
+    expect(ComptesTresorerie::canView())->toBeFalse();
+
+    $this->actingAs(utilisateur(Role::Associe));
+    Livewire::test(ComptesTresorerie::class)->assertSee('Trésorerie disponible');
+});
