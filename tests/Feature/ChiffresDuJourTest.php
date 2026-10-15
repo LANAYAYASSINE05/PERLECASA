@@ -7,11 +7,13 @@ use App\Enums\Role;
 use App\Enums\TypeCompte;
 use App\Enums\TypeDecaissement;
 use App\Enums\TypeEncaissement;
+use App\Filament\Pages\TableauDeBord;
 use App\Filament\Widgets\ChiffresDuJour;
 use App\Models\ChargeFixe;
 use App\Models\Decaissement;
 use App\Models\Encaissement;
 use App\Models\Fournisseur;
+use App\Support\PeriodeTableau;
 use Filament\Facades\Filament;
 use Livewire\Livewire;
 
@@ -54,7 +56,7 @@ it('compte les mouvements du jour seulement', function () {
     Livewire::test(ChiffresDuJour::class)
         ->assertSee('Encaissé aujourd’hui')->assertSee('200 000,00')
         ->assertSee('Solde du jour')->assertSee('169 500,00')
-        ->assertSee('Ventes du jour')
+        ->assertSee('Ventes aujourd’hui')
         ->assertSee('dont 1 sans pièce')
         ->assertSee('Charges fixes à régler');
 });
@@ -67,10 +69,10 @@ it('ne montre au caissier que sa caisse', function () {
 
     Livewire::test(ChiffresDuJour::class)
         ->assertSee('Sorti de caisse aujourd’hui')
-        ->assertSee('Caisse du jour')
+        ->assertSee('Caisse aujourd’hui')
         ->assertDontSee('Encaissé aujourd’hui')
         ->assertDontSee('Solde du jour')
-        ->assertDontSee('Ventes du jour')
+        ->assertDontSee('Ventes aujourd’hui')
         ->assertDontSee('Charges fixes à régler')
         ->assertDontSee('30 500,00');
 });
@@ -82,9 +84,32 @@ it('montre à l’associé les chiffres du jour sans caisse ni charges', functio
         ->assertSee('Encaissé aujourd’hui')
         ->assertSee('Décaissé aujourd’hui')
         ->assertSee('Solde du jour')
-        ->assertSee('Ventes du jour')
-        ->assertDontSee('Caisse du jour')
+        ->assertSee('Ventes aujourd’hui')
+        ->assertDontSee('Caisse aujourd’hui')
         ->assertDontSee('Charges fixes à régler');
+});
+
+it('filtre les cartes par période', function () {
+    $admin = auth()->user();
+
+    expect(ChiffresDuJour::chiffres($admin, PeriodeTableau::depuisFiltres(['periode' => 'hier']))['encaisse'])->toBe(50000.0)
+        ->and(ChiffresDuJour::chiffres($admin, PeriodeTableau::depuisFiltres(['periode' => 'date', 'date' => now()->subDay()->toDateString()]))['encaisse'])->toBe(50000.0)
+        ->and(PeriodeTableau::depuisFiltres(['periode' => 'date', 'date' => now()->addDay()->toDateString()])->cle)->toBe('aujourdhui')
+        ->and(PeriodeTableau::depuisFiltres(['periode' => 'inconnue'])->cle)->toBe('aujourdhui');
+
+    $mois = ChiffresDuJour::chiffres($admin, PeriodeTableau::depuisFiltres(['periode' => 'mois']));
+    expect($mois['encaisse'])->toBe(now()->day > 1 ? 250000.0 : 200000.0);
+
+    Livewire::test(ChiffresDuJour::class, ['filters' => ['periode' => 'hier']])
+        ->assertSee('Encaissé hier')->assertSee('50 000,00')
+        ->assertSee('Solde du jour');
+    Livewire::test(ChiffresDuJour::class, ['filters' => ['periode' => 'semaine']])
+        ->assertSee('Cette semaine')->assertSee('Solde de la période');
+
+    Livewire::test(TableauDeBord::class)
+        ->assertSet('filters.periode', 'aujourdhui')
+        ->set('filters.periode', 'hier')
+        ->assertSet('filters.periode', 'hier');
 });
 
 it('affiche les cartes du jour sur le tableau de bord de chaque rôle', function (Role $role) {
