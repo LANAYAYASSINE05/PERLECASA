@@ -59,7 +59,30 @@ it('décompose le prix TTC de la vente sur la facture et fige son numéro', func
         ->and(PiecesCommerciales::facture($vente->fresh())['numero'])->toBe($numero);
 });
 
-it('télécharge la facture, le reçu et le bon de commande au format Excel', function () {
+it('établit le contrat de vente client et fige son numéro', function () {
+    $vente = vente(800000);
+    Encaissement::create([
+        'type' => TypeEncaissement::VenteAppartement, 'vente_id' => $vente->id, 'date_operation' => now(),
+        'compte_id' => compte()->id, 'mode' => ModePaiement::Virement, 'montant' => 200000,
+    ]);
+
+    $piece = PiecesCommerciales::contrat($vente);
+    $numero = $vente->fresh()->numero_contrat;
+
+    expect($piece['titre'])->toBe('Contrat de vente')
+        ->and($piece['numero'])->toStartWith('CTR-')->toBe($numero)
+        ->and($piece['tiers']['nom'])->toBe($vente->client->nomComplet())
+        ->and($piece['totaux'][0][1])->toBe(800000.0)
+        ->and($piece['totaux'][1][1])->toBe(200000.0)
+        ->and($piece['totaux'][2][1])->toBe(600000.0)
+        ->and($piece['signatures'])->toBe(['L’acquéreur', 'Le vendeur'])
+        ->and(PiecesCommerciales::contrat($vente->fresh())['numero'])->toBe($numero);
+
+    $valeurs = collect(PiecesExcel::classeur($piece)->getActiveSheet()->toArray(null, false, false))->flatten()->filter()->values();
+    expect($valeurs)->toContain('CONTRAT DE VENTE', $vente->appartement->reference, 'HUIT CENT MILLE DIRHAMS');
+});
+
+it('télécharge la facture, le contrat, le reçu et le bon de commande au format Excel', function () {
     $vente = vente(500000);
     $encaissement = Encaissement::create([
         'type' => TypeEncaissement::VenteAppartement, 'vente_id' => $vente->id, 'date_operation' => now(),
@@ -67,7 +90,12 @@ it('télécharge la facture, le reçu et le bon de commande au format Excel', fu
     ]);
     $comptable = utilisateur();
 
-    foreach ([route('ventes.facture', $vente), route('encaissements.recu', $encaissement), route('bons-commande.imprimer', bonCommande())] as $url) {
+    foreach ([
+        route('ventes.facture', $vente),
+        route('ventes.contrat', $vente),
+        route('encaissements.recu', $encaissement),
+        route('bons-commande.imprimer', bonCommande()),
+    ] as $url) {
         $this->actingAs($comptable)->get($url)
             ->assertOk()
             ->assertDownload()
@@ -116,7 +144,9 @@ it('allonge le tableau Excel quand la commande est longue', function () {
 it('refuse les pièces commerciales à l’opérateur de caisse', function () {
     $caissier = utilisateur(Role::Caissier);
 
-    $this->actingAs($caissier)->get(route('ventes.facture', vente()))->assertForbidden();
+    $vente = vente();
+    $this->actingAs($caissier)->get(route('ventes.facture', $vente))->assertForbidden();
+    $this->actingAs($caissier)->get(route('ventes.contrat', $vente))->assertForbidden();
     $this->actingAs($caissier)->get(route('bons-commande.imprimer', bonCommande()))->assertForbidden();
     $this->actingAs($caissier)->get('/bons-commande')->assertForbidden();
 });

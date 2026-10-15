@@ -26,6 +26,12 @@ Route::middleware('auth')->group(function () {
         return PiecesExcel::telecharger(PiecesCommerciales::facture($vente));
     })->name('ventes.facture');
 
+    Route::get('/ventes/{vente}/contrat', function (Vente $vente) {
+        abort_unless(auth()->user()->accede('ventes'), 403);
+
+        return PiecesExcel::telecharger(PiecesCommerciales::contrat($vente));
+    })->name('ventes.contrat');
+
     Route::get('/encaissements/{encaissement}/recu', function (Encaissement $encaissement) {
         abort_unless(auth()->user()->can('view', $encaissement), 403);
 

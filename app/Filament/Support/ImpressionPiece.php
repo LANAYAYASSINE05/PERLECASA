@@ -10,7 +10,8 @@ class ImpressionPiece
 {
     public static function make(string $libelle, Closure $url): Action
     {
-        return Action::make('telecharger_excel')->label($libelle)
+        return Action::make('telecharger_'.str($libelle)->slug('_')->lower())
+            ->label($libelle)
             ->icon('heroicon-o-table-cells')->color('success')
             ->url(fn ($record) => $url($record))
             ->extraAttributes(['download' => true]);

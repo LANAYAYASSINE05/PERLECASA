@@ -83,6 +83,16 @@ class Vente extends Model
         return $this->numero_facture;
     }
 
+    /** Le numéro de contrat est attribué à la première impression, puis ne change plus. */
+    public function numeroContrat(): string
+    {
+        if (! $this->numero_contrat) {
+            $this->forceFill(['numero_contrat' => Numerotation::suivant('CTR')])->saveQuietly();
+        }
+
+        return $this->numero_contrat;
+    }
+
     public function libelle(): string
     {
         return "{$this->numero} · {$this->appartement?->reference} · {$this->client?->nomComplet()}";

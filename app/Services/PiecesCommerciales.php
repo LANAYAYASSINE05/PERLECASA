@@ -15,11 +15,95 @@ use App\Models\Vente;
 use App\Support\MontantEnLettres;
 
 /**
- * Contenu de la facture, du reçu et du bon de commande, structuré comme le modèle
+ * Contenu de la facture, du contrat, du reçu et du bon de commande, structuré comme le modèle
  * Excel « Facture Proforma » : en-tête, cadre du tiers, tableau, totaux, pied. Rendu par PiecesExcel.
  */
 class PiecesCommerciales
 {
+    public static function contrat(Vente $vente): array
+    {
+        $vente->loadMissing('appartement.programme', 'client');
+        $appartement = $vente->appartement;
+        $client = $vente->client;
+        $programme = $appartement->programme;
+        $ttc = (float) $vente->prix_vente;
+        $encaisse = $vente->encaisse();
+        $reste = max(0, $ttc - $encaisse);
+        $echeance = (int) config('societe.echeance_jours');
+
+        return [
+            'titre' => 'Contrat de vente',
+            'numero' => $vente->numeroContrat(),
+            'infos' => [
+                'Date' => $vente->date_vente->format('d/m/Y'),
+                'Réf Vente' => $vente->numero,
+                'Nature' => "Vente d'appartement",
+                'Programme' => trim("{$programme?->nom} {$programme?->ville}"),
+            ],
+            'tiers' => [
+                'code' => 'Code Client : '.$client->code(),
+                'nom' => $client->nomComplet(),
+                'lignes' => array_filter([
+                    $client->cin ? 'CIN : '.$client->cin : null,
+                    $client->ice ? 'ICE : '.$client->ice : null,
+                    $client->adresse,
+                    $client->telephone ? 'Tél : '.$client->telephone : null,
+                    $client->email,
+                ]),
+            ],
+            'colonnes' => [
+                ['Article', 'gauche', 14],
+                ['Désignation', 'gauche', 52],
+                ['Détail', 'centre', 16],
+                ['Montant', 'droite', 18],
+            ],
+            'sections' => [
+                [
+                    'titre' => '1. Objet — bien vendu',
+                    'lignes' => [
+                        [
+                            $appartement->reference,
+                            trim("Appartement {$appartement->typologie} · {$appartement->surface} m² · {$programme?->nom}"),
+                            $programme?->ville,
+                            self::valeur($ttc),
+                        ],
+                    ],
+                ],
+                [
+                    'titre' => '2. Prix et règlement',
+                    'lignes' => [
+                        ['PRIX', 'Prix de vente convenu (TTC)', 'TTC', self::valeur($ttc)],
+                        ['ENC', 'Montant déjà encaissé à la date du contrat', 'Payé', self::valeur($encaisse)],
+                        ['RESTE', 'Solde restant dû par l’acquéreur', 'Dû', self::valeur($reste)],
+                    ],
+                ],
+                [
+                    'titre' => '3. Engagements des parties',
+                    'lignes' => [
+                        ['ART.1', 'Le vendeur cède à l’acquéreur le bien décrit ci-dessus, libre de toute occupation.', '—', ''],
+                        ['ART.2', 'L’acquéreur s’engage à régler le prix selon les modalités convenues avec le vendeur.', $echeance ? "{$echeance} j" : '—', ''],
+                        ['ART.3', 'La remise des clés et la jouissance du bien interviennent après paiement du solde ou selon accord écrit.', '—', ''],
+                        ['ART.4', 'Le présent contrat vaut engagement ferme des deux parties à compter de sa date.', '—', ''],
+                    ],
+                ],
+            ],
+            'arrete' => 'Arrêté le présent contrat de vente à la somme de :',
+            'lettres' => MontantEnLettres::dirhams($ttc),
+            'totaux' => [
+                ['Prix de vente T.T.C', self::valeur($ttc)],
+                ['Déjà encaissé', self::valeur($encaisse)],
+                ['Reste dû', self::valeur($reste)],
+            ],
+            'conditions' => array_filter([
+                'Vendeur' => self::raisonSociale(),
+                'Acquéreur' => $client->nomComplet(),
+                'Réf appartement' => $appartement->reference,
+            ]),
+            'banque' => self::banque(Compte::query()->where('type', TypeCompte::Banque)->where('actif', true)->orderBy('id')->first(), 'Compte de règlement'),
+            'signatures' => ['L’acquéreur', 'Le vendeur'],
+        ];
+    }
+
     public static function facture(Vente $vente): array
     {
         $vente->loadMissing('appartement.programme', 'client');

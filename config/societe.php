@@ -1,6 +1,6 @@
 <?php
 
-/* Identité de Perle Casa Immobilier imprimée sur les factures, reçus et bons de commande. */
+/* Identité de Perle Casa Immobilier imprimée sur les factures, contrats, reçus et bons de commande. */
 return [
     'nom' => env('SOCIETE_NOM', 'Perle Casa Immobilier'),
     'forme' => env('SOCIETE_FORME', 'SARL'),

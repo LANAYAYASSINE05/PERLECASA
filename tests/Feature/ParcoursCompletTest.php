@@ -96,6 +96,7 @@ it('télécharge chaque pièce Excel et la pièce justificative', function () {
     $this->actingAs(utilisateur(Role::Administrateur));
 
     $this->get('/ventes/'.Vente::first()->id.'/facture')->assertOk()->assertDownload();
+    $this->get('/ventes/'.Vente::first()->id.'/contrat')->assertOk()->assertDownload();
     $this->get('/encaissements/'.Encaissement::first()->id.'/recu')->assertOk()->assertDownload();
     $this->get('/bons-commande/'.BonCommande::first()->id.'/imprimer')->assertOk()->assertDownload();
 

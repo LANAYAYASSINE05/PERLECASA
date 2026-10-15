@@ -15,5 +15,6 @@ it('télécharge les pièces Excel sans déclencher l’écran de chargement', f
 
     $html = $this->actingAs(utilisateur(Role::Administrateur))->get('/ventes')->getContent();
 
-    expect($html)->toMatch('/<a\b(?=[^>]*\bdownload\b)[^>]*href="[^"]*\/facture"/');
+    expect($html)->toMatch('/<a\b(?=[^>]*\bdownload\b)[^>]*href="[^"]*\/facture"/')
+        ->and($html)->toMatch('/<a\b(?=[^>]*\bdownload\b)[^>]*href="[^"]*\/contrat"/');
 });
