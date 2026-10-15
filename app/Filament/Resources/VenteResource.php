@@ -145,8 +145,10 @@ class VenteResource extends Resource
                             ->body('Reste dû : '.Montant::mad($record->resteDu()))
                             ->send();
                     }),
-                ImpressionPiece::make('Contrat', fn (Vente $v) => route('ventes.contrat', $v)),
-                ImpressionPiece::make('Facture', fn (Vente $v) => route('ventes.facture', $v)),
+                Tables\Actions\ActionGroup::make([
+                    ImpressionPiece::make('Contrat', fn (Vente $v) => route('ventes.contrat', $v)),
+                    ImpressionPiece::make('Facture', fn (Vente $v) => route('ventes.facture', $v)),
+                ])->label('Pièces Excel')->icon('heroicon-m-table-cells')->color('success')->button(),
                 Tables\Actions\EditAction::make()
                     ->using(fn (Vente $record, array $data) => Enregistrement::proteger(fn () => tap($record)->update($data))),
                 Tables\Actions\DeleteAction::make()->label('Annuler la vente')

@@ -5,16 +5,16 @@
 @endphp
 
 <x-filament-widgets::widget>
-    <section class="pc-planche pc-apparition px-6 py-7 sm:px-9 sm:py-9">
-        <div class="relative flex flex-col gap-8 xl:flex-row xl:items-stretch">
-            <div class="flex min-w-0 flex-1 flex-col justify-between gap-7">
+    <section class="pc-planche pc-apparition px-4 py-6 sm:px-9 sm:py-9">
+        <div class="relative flex flex-col gap-6 sm:gap-8 xl:flex-row xl:items-stretch">
+            <div class="flex min-w-0 flex-1 flex-col justify-between gap-5 sm:gap-7">
                 <div>
                     <p class="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-or-300">
                         <span class="border border-or-300/50 px-1.5 py-px tabular-nums">00</span>
                         Tableau de bord
                     </p>
 
-                    <h2 class="mt-4 font-serif text-3xl font-medium tracking-tight sm:text-4xl">
+                    <h2 class="mt-3 font-serif text-2xl font-medium tracking-tight sm:mt-4 sm:text-4xl">
                         {{ $salutation }}, {{ $prenom }}
                     </h2>
 
@@ -24,9 +24,9 @@
                 </div>
 
                 @if ($actions)
-                    <div class="flex flex-wrap gap-3">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
                         @foreach ($actions as $action)
-                            <a href="{{ $action['url'] }}" @class(['pc-bouton-planche', 'pc-principal' => $loop->first])>
+                            <a href="{{ $action['url'] }}" @class(['pc-bouton-planche w-full justify-center sm:w-auto', 'pc-principal' => $loop->first])>
                                 <x-filament::icon :icon="$action['icone']" class="h-4 w-4" />
                                 {{ $action['libelle'] }}
                             </a>

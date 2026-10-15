@@ -2028,39 +2028,100 @@ html:not(.dark) .fi-layout .fi-fo-field-wrp:has(.fi-fo-field-wrp-error-message) 
 /* ---------- Téléphones et petites tablettes ---------- */
 
 @media (max-width: 767px) {
+    .fi-body {
+        background-attachment: scroll;
+    }
+
     .fi-main {
         padding-inline: 0.75rem;
+        padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
     }
 
-    .fi-header-heading {
-        font-size: 1.6rem;
+    .fi-main-ctn {
+        max-width: 100vw;
+        overflow-x: clip;
     }
 
-    .fi-topbar nav {
-        gap: 0.5rem;
-        padding-inline: 0.75rem;
+    /* Logo et topbar : place pour le menu hamburger et les notifications */
+    .fi-logo,
+    .fi-logo img {
+        max-height: 2.35rem !important;
+        width: auto;
+    }
+
+    .fi-topbar > nav {
+        gap: 0.4rem;
+        padding-inline: 0.65rem;
+        padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+        min-height: 3.5rem;
     }
 
     .fi-global-search-field {
-        max-width: 9.5rem;
+        max-width: 7.5rem;
     }
 
-    /* Actions de ligne : icônes seules, le libellé reste lu par les lecteurs d'écran */
+    .fi-global-search-field .fi-input {
+        font-size: 0.875rem;
+    }
+
+    /* En-tête de page : titre puis actions pleine largeur */
+    .fi-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.85rem !important;
+    }
+
+    .fi-header-heading {
+        font-size: 1.45rem;
+        padding-bottom: 0.55rem;
+    }
+
+    .fi-page-header-actions,
+    .fi-header-actions {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .fi-page-header-actions .fi-btn,
+    .fi-header-actions .fi-btn {
+        flex: 1 1 calc(50% - 0.25rem);
+        justify-content: center;
+        min-height: 2.75rem;
+    }
+
+    /* Barre d’outils des tableaux : recherche et filtres empilés */
+    .fi-ta-header,
+    .fi-ta-header-toolbar {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 0.65rem;
+        padding-inline: 0.75rem;
+    }
+
     .fi-ta-actions {
-        gap: 0;
+        gap: 0.15rem !important;
+        flex-wrap: wrap;
+        justify-content: flex-end;
     }
 
     .fi-ta-actions-cell > div {
         padding-inline: 0.25rem;
     }
 
-    .fi-ta-actions .fi-link {
+    /* Actions de ligne : icônes seules (libellé conservé pour les lecteurs d’écran) */
+    .fi-ta-actions .fi-link,
+    .fi-ta-actions .fi-dropdown-trigger .fi-btn {
         gap: 0;
         min-width: 2.6rem;
         min-height: 2.6rem;
+        padding-inline: 0.45rem !important;
+        justify-content: center;
     }
 
-    .fi-ta-actions .fi-link > span {
+    .fi-ta-actions .fi-link > span:not(:has(svg)),
+    .fi-ta-actions .fi-dropdown-trigger .fi-btn > span:not(.fi-btn-icon):not(:has(svg)) {
         position: absolute;
         width: 1px;
         height: 1px;
@@ -2069,9 +2130,11 @@ html:not(.dark) .fi-layout .fi-fo-field-wrp:has(.fi-fo-field-wrp-error-message) 
         white-space: nowrap;
     }
 
-    .fi-ta-actions .fi-link-icon {
+    .fi-ta-actions .fi-link-icon,
+    .fi-ta-actions .fi-dropdown-trigger .fi-btn-icon {
         width: 1.15rem;
         height: 1.15rem;
+        margin: 0 !important;
     }
 
     /* Un appui sur la ligne ouvre déjà la modification */
@@ -2103,8 +2166,14 @@ html:not(.dark) .fi-layout .fi-fo-field-wrp:has(.fi-fo-field-wrp-error-message) 
         font-size: 0.875rem;
     }
 
-    .fi-ta-header-toolbar {
-        padding-inline: 0.75rem;
+    .pc-avatar {
+        width: 1.75rem;
+        height: 1.75rem;
+        font-size: 0.65rem;
+    }
+
+    .pc-jauge {
+        width: 3.75rem;
     }
 
     .pc-titre-bloc {
@@ -2116,12 +2185,88 @@ html:not(.dark) .fi-layout .fi-fo-field-wrp:has(.fi-fo-field-wrp-error-message) 
         min-width: 1.5rem;
     }
 
+    /* Modales presque plein écran, zone tactile confortable */
     .fi-modal-window {
+        width: calc(100vw - 1rem) !important;
+        max-width: calc(100vw - 1rem) !important;
+        margin-inline: 0.5rem;
         border-radius: var(--pc-rayon);
+        max-height: calc(100dvh - 1rem);
     }
 
-    .fi-tabs {
+    .fi-modal-footer-actions {
+        flex-direction: column-reverse;
+        align-items: stretch !important;
+        gap: 0.5rem;
+    }
+
+    .fi-modal-footer-actions .fi-btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 2.75rem;
+    }
+
+    /* Onglets : défilement horizontal sans barre visible */
+    .fi-tabs,
+    .pc-filtre-periode-onglets {
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
+        overscroll-behavior-x: contain;
+    }
+
+    .fi-tabs::-webkit-scrollbar,
+    .pc-filtre-periode-onglets::-webkit-scrollbar {
+        display: none;
+    }
+
+    .fi-tabs-item,
+    .pc-filtre-periode-onglets .fi-tabs-item {
+        flex: none;
+        white-space: nowrap;
+        min-height: 2.5rem;
+    }
+
+    /* Widgets stats : cartes plus compactes */
+    .fi-wi-stats-overview-stat {
+        padding: 0.85rem 1rem !important;
+    }
+
+    .fi-wi-stats-overview-stat-value {
+        font-size: 1.35rem !important;
+        word-break: break-word;
+    }
+
+    /* Pied de sidebar dans le tiroir mobile */
+    .pc-sidebar-pied {
+        margin: 0 0.75rem max(0.75rem, env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Plan commercialisation : garder le défilement tactile */
+    .pc-plan-grille {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .pc-pagination .fi-pagination,
+    .fi-pagination {
+        gap: 0.5rem;
+    }
+
+    .fi-pagination-overview {
+        flex-basis: 100%;
+        text-align: center;
+    }
+}
+
+/* Tablettes portrait : un peu plus d’air, toujours 2 colonnes de cartes */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .fi-main {
+        padding-inline: 1rem;
+    }
+
+    .fi-wi-stats-overview-stats-ctn {
+        gap: 1rem;
     }
 }
