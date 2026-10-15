@@ -7,12 +7,12 @@ use Illuminate\Support\Carbon;
 /** Période des cartes du tableau de bord : un jour, la semaine ou le mois, du début à la fin incluses. */
 final class PeriodeTableau
 {
-    public const OPTIONS = [
+    public const ONGLETS = [
         'aujourdhui' => 'Aujourd’hui',
         'hier' => 'Hier',
-        'semaine' => 'Cette semaine',
-        'mois' => 'Ce mois',
-        'date' => 'Une date précise',
+        'semaine' => 'Semaine',
+        'mois' => 'Mois',
+        'date' => 'Date',
     ];
 
     private function __construct(

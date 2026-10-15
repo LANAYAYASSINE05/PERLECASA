@@ -20,13 +20,16 @@
                 </x-filament::input.wrapper>
             @endif
 
-            <x-filament::input.wrapper>
-                <x-filament::input.select wire:model.live="periode" aria-label="Période des cartes">
-                    @foreach (\App\Support\PeriodeTableau::OPTIONS as $cle => $libelle)
-                        <option value="{{ $cle }}">{{ $libelle }}</option>
-                    @endforeach
-                </x-filament::input.select>
-            </x-filament::input.wrapper>
+            <x-filament::tabs label="Période des cartes">
+                @foreach (\App\Support\PeriodeTableau::ONGLETS as $cle => $libelle)
+                    <x-filament::tabs.item
+                        :active="$periode === $cle"
+                        wire:click="$set('periode', '{{ $cle }}')"
+                    >
+                        {{ $libelle }}
+                    </x-filament::tabs.item>
+                @endforeach
+            </x-filament::tabs>
         </div>
     </div>
 

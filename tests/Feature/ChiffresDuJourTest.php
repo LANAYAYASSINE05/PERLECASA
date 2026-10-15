@@ -101,7 +101,10 @@ it('filtre les cartes par période', function () {
 
     Livewire::test(ChiffresDuJour::class)
         ->assertSee('Période des cartes', false)
+        ->assertSeeInOrder(['Aujourd’hui', 'Hier', 'Semaine', 'Mois', 'Date'])
         ->assertSee('Aujourd’hui ·')
+        ->call('$set', 'periode', 'hier')
+        ->assertSet('periode', 'hier')
         ->set('periode', 'hier')
         ->assertSee('Hier ·')->assertSee('Encaissé hier')->assertSee('50 000,00')
         ->assertSee('Solde du jour')
